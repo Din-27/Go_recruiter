@@ -62,7 +62,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	result := db.First(&user).Where("email = ?", user.Email)
+	result := db.First(&user).Where("email = ? or username", login.Email, login.Username)
 	if result.Error != nil {
 		_resError(c, "error", errors.New("Email tidak ditemukan !"))
 		return
