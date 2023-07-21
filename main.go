@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/Din-27/Go_job/controllers/usercontrollers"
+	users "github.com/Din-27/Go_job/controllers/auth/service"
 	"github.com/Din-27/Go_job/middlewares/tokenpaseto"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -22,7 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 	r := gin.Default()
-	userRepository := usercontrollers.NewRepositoryUser(db)
+	userRepository := users.NewRepositoryUser(db)
 	router := r.Group("/api/v1")
 	router.POST("/register", userRepository.Register)
 	router.POST("/login", userRepository.Login)

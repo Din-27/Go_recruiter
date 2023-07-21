@@ -1,14 +1,23 @@
-package usercontrollers
+package service
 
 import (
 	"fmt"
+	"github.com/Din-27/Go_job/controllers/auth/dto"
+	"github.com/Din-27/Go_job/middlewares/tokenpaseto"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/Din-27/Go_job/middlewares/tokenpaseto"
-	"github.com/gin-gonic/gin"
 )
+
+type Repository struct {
+	db *gorm.DB
+}
+
+func NewRepositoryUser(db *gorm.DB) *Repository {
+	return &Repository{db}
+}
 
 func errorResponse(err error) *gin.H {
 	return &gin.H{"message": err.Error()}
@@ -17,7 +26,7 @@ func errorResponse(err error) *gin.H {
 func (d *Repository) Register(c *gin.Context) {
 
 	var (
-		user User
+		user dto.UserDto
 	)
 
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -36,7 +45,7 @@ func (d *Repository) Register(c *gin.Context) {
 func (d *Repository) Login(c *gin.Context) {
 
 	var (
-		user User
+		user dto.LoginDto
 	)
 	tokenMaker, err := tokenpaseto.NewPasetoMaker("12345678901234567890123456789012")
 	if err != nil {
