@@ -14,9 +14,8 @@ import (
 )
 
 var (
-	db     = config.DBinit()
-	resErr = helpers.ResponseError
-	resSuc = helpers.ResponseSukses
+	db        = config.DBinit()
+	_resError = helpers.ResponseError
 )
 
 func Register(c *gin.Context) {
@@ -24,7 +23,7 @@ func Register(c *gin.Context) {
 	var user schema.Register
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		resErr(c, "error", err)
+		_resError(c, "error", err)
 		return
 	}
 
@@ -43,10 +42,10 @@ func Register(c *gin.Context) {
 	user.Password = encodedHash
 	result := db.Create(user)
 	if result.Error != nil {
-		resErr(c, "status internal error", result.Error)
+		_resError(c, "status internal error", result.Error)
 		return
 	}
-	resSuc(c, user)
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": user})
 }
 
 func Login(c *gin.Context) {
@@ -59,31 +58,29 @@ func Login(c *gin.Context) {
 		log.Fatal(err)
 	}
 	if err := c.ShouldBindJSON(&login); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, helpers.ErrorResponse(err))
+		_resError(c, "error", err)
 		return
 	}
 
 	result := db.First(&user).Where("email = ?", user.Email)
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, helpers.
-			ErrorResponse(errors.
-				New("Email tidak ditemukan !")))
+		_resError(c, "error", errors.New("Email tidak ditemukan !"))
 		return
 	}
 
 	match, _err := helpers.ComparePasswordAndHash(login.Password, user.Password)
 	if _err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
+		_resError(c, "status internal error", err)
 		return
 	}
 	if match != true {
-		c.AbortWithStatusJSON(http.StatusBadRequest, helpers.ErrorResponse(errors.New("Email atau Password salah !")))
+		_resError(c, "error", errors.New("Email atau Password salah !"))
 		return
 	}
 
 	token, payload, err := tokenMaker.CreateToken(user.Id, user.Username, time.Minute)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
+		_resError(c, "status internal error", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"user": token, "payload": payload})

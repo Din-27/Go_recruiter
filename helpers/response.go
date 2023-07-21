@@ -16,9 +16,7 @@ func ResponseError(c *gin.Context, sts string, value error) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse(value))
 	case "error":
 		c.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse(value))
+	default:
+		c.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse(value))
 	}
-}
-
-func ResponseSukses(c *gin.Context, value) {
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": value})
 }
