@@ -1,4 +1,4 @@
-package tokenpaseto
+package helpers
 
 import (
 	"errors"
