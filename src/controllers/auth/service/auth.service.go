@@ -16,6 +16,13 @@ import (
 var (
 	db        = config.DBinit()
 	_resError = helpers.ResponseError
+	p         = &models.Params{
+		Memory:      64 * 1024,
+		Iterations:  3,
+		Parallelism: 2,
+		SaltLength:  16,
+		KeyLength:   32,
+	}
 )
 
 func Register(c *gin.Context) {
@@ -25,14 +32,6 @@ func Register(c *gin.Context) {
 	if err := c.ShouldBindJSON(&user); err != nil {
 		_resError(c, "error", err)
 		return
-	}
-
-	p := &models.Params{
-		Memory:      64 * 1024,
-		Iterations:  3,
-		Parallelism: 2,
-		SaltLength:  16,
-		KeyLength:   32,
 	}
 
 	encodedHash, err := helpers.GenerateFromPassword("test", p)
@@ -62,12 +61,22 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	result := db.First(&user).Where("email = ? or username", login.Email, login.Username)
-	if result.Error != nil {
+	// result := db.First(&user).Where("email = ? or username", login.Email, login.Username)
+	// if result.Error != nil {
+	// 	_resError(c, "error", errors.New("Email tidak ditemukan !"))
+	// 	return
+	// }
+
+	email := "test1@gmail.com"
+	if email != login.Email {
 		_resError(c, "error", errors.New("Email tidak ditemukan !"))
 		return
 	}
-
+	encodedHash, err := helpers.GenerateFromPassword("test123", p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	user.Password = encodedHash
 	match, _err := helpers.ComparePasswordAndHash(login.Password, user.Password)
 	if _err != nil {
 		_resError(c, "status internal error", err)
@@ -78,7 +87,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, payload, err := tokenMaker.CreateToken(user.Id, user.Username, time.Minute)
+	token, payload, err := tokenMaker.CreateToken(user.Id, login.Username, time.Minute)
 	if err != nil {
 		_resError(c, "status internal error", err)
 		return
@@ -87,6 +96,6 @@ func Login(c *gin.Context) {
 }
 
 func Test(c *gin.Context) {
-
-	c.JSON(http.StatusOK, gin.H{"msg": "sukses"})
+	value, _ := c.Get("authorization_payload")
+	c.JSON(http.StatusOK, gin.H{"msg": value})
 }
