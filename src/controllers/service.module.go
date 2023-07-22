@@ -7,8 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Services(tokenMaker helpers.Maker) {
-	r := gin.Default()
+func Services(tokenMaker helpers.Maker, r *gin.Engine) {
 
 	router := r.Group("/api/v1")
 

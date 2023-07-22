@@ -142,6 +142,7 @@ func RefreshToken(c *gin.Context) {
 		_resError(c, "unauthorized", _isErr("session telah habis !"))
 		return
 	}
+	fmt.Println(user)
 	results := schema.ResponseLogin{
 		Id:           user.Id,
 		FirstName:    user.FirstName,
