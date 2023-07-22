@@ -8,7 +8,7 @@ import (
 )
 
 func AppRoutes() {
-	tokenMaker, err := helpers.NewPasetoMaker("12345678901234567890123456789012")
+	tokenMaker, err := helpers.NewPasetoMaker()
 	if err != nil {
 		log.Fatal(err)
 	}

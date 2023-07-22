@@ -1,9 +1,10 @@
 package service
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Din-27/Go_job/helpers"
@@ -16,6 +17,7 @@ import (
 var (
 	db        = config.DBinit()
 	_resError = helpers.ResponseError
+	_isErr    = helpers.ErrorReturn
 	p         = &models.Params{
 		Memory:      64 * 1024,
 		Iterations:  3,
@@ -27,21 +29,28 @@ var (
 
 func Register(c *gin.Context) {
 
-	var user schema.Register
+	var user schema.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		_resError(c, "error", err)
 		return
 	}
 
-	encodedHash, err := helpers.GenerateFromPassword("test", p)
+	encodedHash, err := helpers.GenerateFromPassword(user.Password, p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	encodedApi, err := helpers.GenerateFromPassword(user.Email+user.Password, p)
 	if err != nil {
 		log.Fatal(err)
 	}
 	user.Password = encodedHash
-	result := db.Create(user)
+	user.ApiToken = encodedApi
+	fmt.Println(user)
+
+	result := db.Create(&user)
 	if result.Error != nil {
-		_resError(c, "status internal error", result.Error)
+		_resError(c, "server internal error", result.Error)
 		return
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": user})
@@ -52,50 +61,95 @@ func Login(c *gin.Context) {
 		login schema.Login
 		user  schema.User
 	)
-	tokenMaker, err := helpers.NewPasetoMaker("12345678901234567890123456789012")
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	if err := c.ShouldBindJSON(&login); err != nil {
 		_resError(c, "error", err)
 		return
 	}
 
-	// result := db.First(&user).Where("email = ? or username", login.Email, login.Username)
-	// if result.Error != nil {
-	// 	_resError(c, "error", errors.New("Email tidak ditemukan !"))
-	// 	return
-	// }
-
-	email := "test1@gmail.com"
-	if email != login.Email {
-		_resError(c, "error", errors.New("Email tidak ditemukan !"))
+	result := db.Where("email = ?", login.Email).Take(&user)
+	if result.Error != nil {
+		_resError(c, "error", _isErr("Email tidak ditemukan !"))
 		return
 	}
-	encodedHash, err := helpers.GenerateFromPassword("test123", p)
+
+	// email := "test1@gmail.com"
+	// if email != login.Email {
+	// 	_resError(c, "error", _isErr("Email tidak ditemukan !"))
+	// 	return
+	// }
+	encodedHash, err := helpers.GenerateFromPassword(login.Password, p)
 	if err != nil {
 		log.Fatal(err)
 	}
 	user.Password = encodedHash
 	match, _err := helpers.ComparePasswordAndHash(login.Password, user.Password)
 	if _err != nil {
-		_resError(c, "status internal error", err)
+		_resError(c, "server internal error", err)
 		return
 	}
-	if match != true {
-		_resError(c, "error", errors.New("Email atau Password salah !"))
+	if !match {
+		_resError(c, "error", _isErr("email atau Password salah !"))
 		return
 	}
-
-	token, payload, err := tokenMaker.CreateToken(user.Id, login.Username, time.Minute)
+	tokenMaker, err := helpers.NewPasetoMaker()
 	if err != nil {
-		_resError(c, "status internal error", err)
+		log.Fatal(err)
+	}
+	token, _, err := tokenMaker.CreateToken(user.Id, user.Username, login.Email, user.ApiToken, time.Minute)
+	if err != nil {
+		_resError(c, "server internal error", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"user": token, "payload": payload})
+	results := schema.ResponseLogin{
+		Id:           user.Id,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Username:     user.Username,
+		Email:        user.Email,
+		Specialist:   user.Specialist,
+		RefreshToken: token,
+	}
+	c.JSON(http.StatusOK, gin.H{"value": results})
 }
 
-func Test(c *gin.Context) {
+func RefreshToken(c *gin.Context) {
+	var (
+		token string
+		user  schema.User
+	)
+	getToken := c.GetHeader("authorization")
+	fields := strings.Fields(getToken)
+	token = fields[1]
+
 	value, _ := c.Get("authorization_payload")
-	c.JSON(http.StatusOK, gin.H{"msg": value})
+	body, _ := value.(*helpers.Payload)
+	err := helpers.Valid(body)
+	if err != nil {
+		tokenMaker, err := helpers.NewPasetoMaker()
+		if err != nil {
+			log.Fatal(err)
+		}
+		_token, _, _err := tokenMaker.CreateToken(body.ID, body.Username, body.Email, body.ApiToken, time.Minute)
+		token = _token
+		if _err != nil {
+			_resError(c, "unauthorized", _err)
+			return
+		}
+	}
+	result := db.Where("api_token = ?", body.ApiToken).Take(&user)
+	if result.Error != nil {
+		_resError(c, "unauthorized", _isErr("session telah habis !"))
+		return
+	}
+	results := schema.ResponseLogin{
+		Id:           user.Id,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Username:     user.Username,
+		Email:        user.Email,
+		Specialist:   user.Specialist,
+		RefreshToken: token,
+	}
+	c.JSON(http.StatusOK, gin.H{"value": results})
 }

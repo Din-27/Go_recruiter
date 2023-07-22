@@ -5,9 +5,6 @@ import (
 	"net/http"
 )
 
-type valueMsg struct {
-}
-
 func ResponseError(c *gin.Context, sts string, value error) {
 	switch sts {
 	case "server internal error":

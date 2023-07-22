@@ -15,16 +15,20 @@ var (
 type Payload struct {
 	ID        int       `json:"id_user"`
 	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	ApiToken  string    `json:"apitoken"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
 
 // NewPayload creates a new token payload with a specific username and duration
-func NewPayload(id_user int, username string, duration time.Duration) (*Payload, error) {
+func NewPayload(id_user int, username string, email string, apitoken string, duration time.Duration) (*Payload, error) {
 
 	payload := &Payload{
 		ID:        id_user,
 		Username:  username,
+		Email:     email,
+		ApiToken:  apitoken,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 	}
@@ -32,7 +36,7 @@ func NewPayload(id_user int, username string, duration time.Duration) (*Payload,
 }
 
 // Valid checks if the token payload is valid or not
-func (payload *Payload) Valid() error {
+func Valid(payload *Payload) error {
 	if time.Now().After(payload.ExpiredAt) {
 		return ErrExpiredToken
 	}

@@ -1,26 +1,27 @@
 package schema
 
 type User struct {
-	Id         int    `gorm:"type:int" json:"id" validate:"required"`
+	Id         int    `gorm:"type:int" json:"id_user"`
 	FirstName  string `gorm:"type:varchar(255)" json:"first_name" validate:"required"`
 	LastName   string `gorm:"type:varchar(255)" json:"last_name" validate:"required"`
 	Username   string `gorm:"type:varchar(255)" json:"username" validate:"required"`
 	Email      string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
 	Password   string `gorm:"type:varchar(255)" json:"password" validate:"required"`
-	Specialist string `gorm:"type:varchar(255)" json:"specialist" validate:"required"`
-}
-
-type Register struct {
-	FirstName  string `gorm:"type:varchar(255)" json:"first_name" validate:"required"`
-	LastName   string `gorm:"type:varchar(255)" json:"last_name" validate:"required"`
-	Username   string `gorm:"type:varchar(255)" json:"username" validate:"required"`
-	Email      string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
-	Password   string `gorm:"type:varchar(255)" json:"password" validate:"required"`
+	ApiToken   string `json:"api_token"`
 	Specialist string `gorm:"type:varchar(255)" json:"specialist" validate:"required"`
 }
 
 type Login struct {
-	Username string `gorm:"type:varchar(255)" json:"username" validate:"required"`
 	Email    string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
 	Password string `gorm:"type:varchar(255)" json:"password" validate:"required"`
+}
+
+type ResponseLogin struct {
+	Id           int    `json:"id_user"`
+	FirstName    string `json:"first_name" validate:"required"`
+	LastName     string `json:"last_name" validate:"required"`
+	Username     string `json:"username" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	Specialist   string `json:"specialist" validate:"required"`
+	RefreshToken string `json:"refresh_token" validate:"required"`
 }

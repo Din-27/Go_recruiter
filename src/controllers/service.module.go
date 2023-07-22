@@ -15,7 +15,7 @@ func Services(tokenMaker helpers.Maker) {
 	router.POST("/register", users.Register)
 	router.POST("/login", users.Login)
 	authRoutes := router.Group("/").Use(tokenpaseto.AuthMiddleware(tokenMaker))
-	authRoutes.GET("/test", users.Test)
+	authRoutes.GET("/checkauth", users.RefreshToken)
 
 	r.Run()
 }
