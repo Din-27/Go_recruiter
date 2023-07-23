@@ -1,7 +1,7 @@
 package schema
 
 type User struct {
-	Id         int    `gorm:"type:uint, AUTO_INCREMENT" json:"id_user"`
+	Id         int    `gorm:"column:id_user" json:"id_user"`
 	FirstName  string `gorm:"type:varchar(255)" json:"first_name" validate:"required"`
 	LastName   string `gorm:"type:varchar(255)" json:"last_name" validate:"required"`
 	Username   string `gorm:"type:varchar(255)" json:"username" validate:"required"`
@@ -17,7 +17,7 @@ type Login struct {
 }
 
 type ResponseLogin struct {
-	Id           int    `gorm:"type:uint, AUTO_INCREMENT" json:"id_user" validate:"required"`
+	Id           int    `gorm:"column:id_user, primaryKey" json:"id_user" validate:"required"`
 	FirstName    string `json:"first_name" validate:"required"`
 	LastName     string `json:"last_name" validate:"required"`
 	Username     string `json:"username" validate:"required"`
