@@ -7,6 +7,6 @@ type Keahlian struct {
 }
 
 type BodyKeahlian struct {
-	NamaKeahlian string `gorm:"varchar(255)" json:"nama_keahlian" validate:"required"`
-	Image        string `gorm:"varchar(255)" json:"image" validate:"required"`
+	NamaKeahlian string `gorm:"varchar(255)" form:"nama_keahlian" validate:"required"`
+	Image        string `gorm:"varchar(255)" form:"image" validate:"required"`
 }
