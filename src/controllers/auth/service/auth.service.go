@@ -40,12 +40,7 @@ func Register(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	encodedApi, err := helpers.GenerateFromPassword(user.Email+user.Password, p)
-	if err != nil {
-		log.Fatal(err)
-	}
 	user.Password = encodedHash
-	user.ApiToken = encodedApi
 	fmt.Println(user)
 
 	result := db.Create(&user)
@@ -67,17 +62,17 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	result := db.Where("email = ?", login.Email).Take(&user)
-	if result.Error != nil {
-		_resError(c, "error", _isErr("Email tidak ditemukan !"))
-		return
-	}
-
-	// email := "test1@gmail.com"
-	// if email != login.Email {
+	// result := db.Where("email = ?", login.Email).Take(&user)
+	// if result.Error != nil {
 	// 	_resError(c, "error", _isErr("Email tidak ditemukan !"))
 	// 	return
 	// }
+
+	email := "test1@gmail.com"
+	if email != login.Email {
+		_resError(c, "error", _isErr("Email tidak ditemukan !"))
+		return
+	}
 	encodedHash, err := helpers.GenerateFromPassword(login.Password, p)
 	if err != nil {
 		log.Fatal(err)
@@ -96,7 +91,12 @@ func Login(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	token, _, err := tokenMaker.CreateToken(user.Id, user.Username, login.Email, user.ApiToken, time.Minute)
+	refresh_token, _, err := tokenMaker.CreateToken(user.Id, user.Username, login.Email, time.Hour)
+	if err != nil {
+		_resError(c, "server internal error", err)
+		return
+	}
+	access_token, err := tokenMaker.CreateTokenPublic(refresh_token)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -108,49 +108,48 @@ func Login(c *gin.Context) {
 		Username:     user.Username,
 		Email:        user.Email,
 		Specialist:   user.Specialist,
-		RefreshToken: token,
+		AccessToken:  access_token,
+		RefreshToken: refresh_token,
 	}
 	c.JSON(http.StatusOK, gin.H{"value": results})
 }
 
 func RefreshToken(c *gin.Context) {
 	var (
-		token string
-		user  schema.User
+		refresh_token string
+		user          schema.User
 	)
 	getToken := c.GetHeader("authorization")
 	fields := strings.Fields(getToken)
-	token = fields[1]
+	refresh_token = fields[1]
+
+	tokenMaker, err := helpers.NewPasetoMaker()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	value, _ := c.Get("authorization_payload")
-	body, _ := value.(*helpers.Payload)
-	err := helpers.Valid(body)
+	payload, _ := value.(*helpers.Payload)
+	err = helpers.Valid(payload)
 	if err != nil {
-		tokenMaker, err := helpers.NewPasetoMaker()
-		if err != nil {
-			log.Fatal(err)
-		}
-		_token, _, _err := tokenMaker.CreateToken(body.ID, body.Username, body.Email, body.ApiToken, time.Minute)
-		token = _token
-		if _err != nil {
-			_resError(c, "unauthorized", _err)
-			return
-		}
-	}
-	result := db.Where("api_token = ?", body.ApiToken).Take(&user)
-	if result.Error != nil {
-		_resError(c, "unauthorized", _isErr("session telah habis !"))
+		_resError(c, "unauthorized", err)
 		return
 	}
+	token, _err := tokenMaker.CreateTokenPublic(refresh_token)
+	if _err != nil {
+		_resError(c, "unauthorized", _err)
+		return
+	}
+
 	fmt.Println(user)
-	results := schema.ResponseLogin{
-		Id:           user.Id,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Username:     user.Username,
-		Email:        user.Email,
-		Specialist:   user.Specialist,
-		RefreshToken: token,
+	results := schema.ResponseRefresh{
+		Id:          user.Id,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Username:    user.Username,
+		Email:       user.Email,
+		Specialist:  user.Specialist,
+		AccessToken: token,
 	}
 	c.JSON(http.StatusOK, gin.H{"value": results})
 }

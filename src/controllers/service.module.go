@@ -17,20 +17,22 @@ func Services(tokenMaker helpers.Maker, r *gin.Engine) {
 
 	router.POST("/register", auth.Register)
 	router.POST("/login", auth.Login)
-	
-	authRoutes := router.Group("/").Use(tokenpaseto.AuthMiddleware(tokenMaker))
-	
-	authRoutes.GET("/checkauth", auth.RefreshToken)
 
-	authRoutes.GET("/provinsi", states.ListProvince)
-	authRoutes.GET("/kabupaten/:id_provinsi", states.ListKabupaten)
-	authRoutes.GET("/kecamatan/:id_kabupaten", states.ListKecamatan)
-	authRoutes.GET("/kelurahan/:id_kecamatan", states.ListKelurahan)
+	authRoutes := router.Group("/").Use(tokenpaseto.AuthMiddlewareLocal(tokenMaker))
 
-	authRoutes.GET("/keahlian", keahlian.ListKeahlian)
-	authRoutes.POST("/keahlian", keahlian.AddKeahlian)
+	authRoutes.GET("/refresh_token", auth.RefreshToken)
 
-	authRoutes.GET("/user", users.User)
+	authRoutesPublic := router.Group("/").Use(tokenpaseto.AuthMiddlewarePublic(tokenMaker))
+
+	authRoutesPublic.GET("/provinsi", states.ListProvince)
+	authRoutesPublic.GET("/kabupaten/:id_provinsi", states.ListKabupaten)
+	authRoutesPublic.GET("/kecamatan/:id_kabupaten", states.ListKecamatan)
+	authRoutesPublic.GET("/kelurahan/:id_kecamatan", states.ListKelurahan)
+
+	authRoutesPublic.GET("/keahlian", keahlian.ListKeahlian)
+	authRoutesPublic.POST("/keahlian", keahlian.AddKeahlian)
+
+	authRoutesPublic.GET("/user", users.User)
 
 	r.Run()
 }
