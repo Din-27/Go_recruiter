@@ -91,7 +91,7 @@ func Login(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	refresh_token, _, err := tokenMaker.CreateToken(user.Id, user.Username, login.Email, time.Hour)
+	refresh_token, _, err := tokenMaker.CreateToken(user.Id, user.Username, login.Email, time.Minute)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return

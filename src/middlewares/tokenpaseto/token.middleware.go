@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Din-27/Go_job/helpers"
 	"github.com/gin-gonic/gin"
@@ -87,7 +88,10 @@ func AuthMiddlewarePublic(tokenMaker helpers.Maker) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
 			return
 		}
-
+		if time.Now().After(newJsonToken.Expiration) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "token has expired"})
+			return
+		}
 		c.Set(authorizationPayloadKeyPublic, newJsonToken)
 		c.Next()
 	}
