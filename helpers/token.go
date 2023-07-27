@@ -2,82 +2,79 @@ package helpers
 
 import (
 	"crypto/ed25519"
-	"encoding/hex"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"time"
 
-	"github.com/aead/chacha20poly1305"
 	"github.com/o1egl/paseto"
 )
 
-// PasetoMaker is a PASETO token maker
-type PasetoMaker struct {
-	paseto       *paseto.V2
-	symmetricKey []byte
-}
-
-type Maker interface {
-	// CreateToken creates a new token for a specific username and duration
-	CreateToken(id_user int, username string, email string, duration time.Duration) (string, *Payload, error)
-	CreateTokenPublic(access_token string) (string, error)
-
-	// VerifyToken checks if the token is valid or not
-	VerifyToken(token string) (*Payload, error)
-}
-
-var (
-	c, _       = hex.DecodeString("b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
-	PrivateKey = ed25519.PrivateKey(c)
-	b, _       = hex.DecodeString("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
-	PublicKey  = ed25519.PublicKey(b)
+const (
+	PublicKeyStr  = "YOUR_BASE64_ENCODED_PUBLIC_KEY"
+	PrivateKeyStr = "YOUR_BASE64_ENCODED_PRIVATE_KEY"
+	tokenDuration = 15 * time.Minute // Adjust as per your requirements
 )
 
-// NewPasetoMaker creates a new PasetoMaker
-func NewPasetoMaker() (Maker, error) {
-	var symmetricKey string = "12345678901234567890123456789012"
-	if len(symmetricKey) != chacha20poly1305.KeySize {
-		return nil, fmt.Errorf("invalid key size: must be exactly %d characters", chacha20poly1305.KeySize)
-	}
-
-	maker := &PasetoMaker{
-		paseto:       paseto.NewV2(),
-		symmetricKey: []byte(symmetricKey),
-	}
-
-	return maker, nil
-}
-
-// CreateToken creates a new token for a specific username and duration
-func (maker *PasetoMaker) CreateToken(id_user int, username string, email string, duration time.Duration) (string, *Payload, error) {
-	payload, err := NewPayload(id_user, username, email, duration)
+func PrivateKeyHandle() []byte {
+	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		return "", payload, err
+		fmt.Println("Error generating key pair:", err)
+		return nil
 	}
-
-	token, err := maker.paseto.Encrypt(maker.symmetricKey, payload, nil)
-	return token, payload, err
-}
-
-// VerifyToken checks if the token is valid or not
-func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error) {
-	payload := &Payload{}
-
-	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
+	privKey := base64.RawURLEncoding.EncodeToString(privateKey)
 	if err != nil {
-		return nil, ErrInvalidToken
+		fmt.Println("Error decoding private key:", err)
+		return nil
 	}
-
-	return payload, nil
+	privateKey = ed25519.PrivateKey(privKey)
+	return privateKey
 }
 
-func (maker *PasetoMaker) CreateTokenPublic(access_token string) (string, error) {
+func GenerateAccessToken(username, email, role string) (string, error) {
+	privateKey := PrivateKeyHandle()
+	now := time.Now()
+	expiration := now.Add(15 * time.Minute)
 
-	jsonToken := paseto.JSONToken{
-		Expiration: time.Now().Add(1 * time.Minute),
+	// Create a new PASETO token for the access token
+	accessToken := paseto.JSONToken{
+		Subject:    username,
+		Audience:   email,
+		Issuer:     role,
+		Expiration: expiration,
 	}
-	jsonToken.Set(access_token, "this is a signed message")
-	footer := "some footer"
-	token, err := paseto.NewV2().Sign(PrivateKey, jsonToken, footer)
+	accessTokenFooter := map[string]interface{}{
+		"type": "access",
+	}
 
-	return token, err
+	// Sign the access token with the private key
+
+	// Sign the access token with the private key
+	token, err := paseto.NewV2().Sign(privateKey, &accessToken, accessTokenFooter)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func GenerateRefreshToken() (string, error) {
+	privateKey := PrivateKeyHandle()
+	refreshTokenBytes := make([]byte, 32)
+	_, err := rand.Read(refreshTokenBytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Create a new PASETO token for the refresh token
+	refreshToken := paseto.JSONToken{}
+	refreshTokenFooter := map[string]interface{}{"type": "refresh"}
+
+	// Sign the refresh token with the private key
+	token, err := paseto.NewV2().Sign(privateKey, &refreshToken, refreshTokenFooter)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

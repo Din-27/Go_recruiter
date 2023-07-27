@@ -1,20 +1,21 @@
 package service
 
 import (
+	"crypto/ed25519"
 	"fmt"
-	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Din-27/Go_job/helpers"
 	"github.com/Din-27/Go_job/helpers/models"
 	"github.com/Din-27/Go_job/src/config"
-	"github.com/Din-27/Go_job/src/controllers/auth/schema"
+	"github.com/Din-27/Go_job/src/controllers/Auth/schema"
 	"github.com/gin-gonic/gin"
+	"github.com/o1egl/paseto"
 )
 
 var (
+	oneMonth  = 30 * 24 * time.Hour
 	db        = config.DBinit()
 	_resError = helpers.ResponseError
 	_isErr    = helpers.ErrorReturn
@@ -27,45 +28,86 @@ var (
 	}
 )
 
+type _role struct {
+	Name string
+}
+
+func RoleHandle(c *gin.Context) {
+	result := []_role{
+		{Name: "user"},
+		{Name: "company"},
+	}
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": result})
+}
+
 func Register(c *gin.Context) {
 
-	var user schema.User
+	role := c.Param("role")
+	if role == "user" {
+		var user schema.User
+		if err := c.ShouldBindJSON(&user); err != nil {
+			_resError(c, "error", err)
+			return
+		}
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+		encodedHash, err := helpers.GenerateFromPassword(user.Password, p)
+		if err != nil {
+			_resError(c, "server internal error", err)
+		}
+		user.Password = encodedHash
+		user.Role = role
+		fmt.Println(user)
+
+		result := db.Create(&user)
+		if result.Error != nil {
+			_resError(c, "server internal error", result.Error)
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": user})
+		return
+	}
+	var company schema.User
+	if err := c.ShouldBindJSON(&company); err != nil {
 		_resError(c, "error", err)
 		return
 	}
 
-	encodedHash, err := helpers.GenerateFromPassword(user.Password, p)
+	encodedHash, err := helpers.GenerateFromPassword(company.Password, p)
 	if err != nil {
-		log.Fatal(err)
+		_resError(c, "server internal error", err)
 	}
-	user.Password = encodedHash
-	fmt.Println(user)
+	company.Password = encodedHash
+	company.Role = role
+	fmt.Println(company)
 
-	result := db.Create(&user)
+	result := db.Create(&company)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
 		return
 	}
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": user})
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": company})
+	return
+
 }
 
 func Login(c *gin.Context) {
 	var (
-		login schema.Login
-		user  schema.User
+		login   schema.Login
+		user    schema.User
+		company schema.Company
 	)
-
+	role := c.Param("role")
 	if err := c.ShouldBindJSON(&login); err != nil {
 		_resError(c, "error", err)
 		return
 	}
 
-	// result := db.Where("email = ?", login.Email).Take(&user)
-	// if result.Error != nil {
-	// 	_resError(c, "error", _isErr("Email tidak ditemukan !"))
-	// 	return
+	// if role == "user" {
+	// 	result := db.Where("email = ?", login.Email).Take(&user)
+	// 	if result.Error != nil {
+	// 		_resError(c, "error", _isErr("Email tidak ditemukan !"))
+	// 		return
+	// 	}
 	// }
 
 	email := "test1@gmail.com"
@@ -75,7 +117,7 @@ func Login(c *gin.Context) {
 	}
 	encodedHash, err := helpers.GenerateFromPassword(login.Password, p)
 	if err != nil {
-		log.Fatal(err)
+		_resError(c, "server internal error", err)
 	}
 	user.Password = encodedHash
 	match, _err := helpers.ComparePasswordAndHash(login.Password, user.Password)
@@ -87,69 +129,74 @@ func Login(c *gin.Context) {
 		_resError(c, "error", _isErr("email atau Password salah !"))
 		return
 	}
-	tokenMaker, err := helpers.NewPasetoMaker()
-	if err != nil {
-		log.Fatal(err)
-	}
-	refresh_token, _, err := tokenMaker.CreateToken(user.Id, user.Username, login.Email, time.Minute)
+
+	refresh_token, err := helpers.GenerateRefreshToken()
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
 	}
-	access_token, err := tokenMaker.CreateTokenPublic(refresh_token)
+	access_token, err := helpers.GenerateAccessToken(user.Username, login.Email, role)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
 	}
-	results := schema.ResponseLogin{
-		Id:           user.Id,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Username:     user.Username,
-		Email:        user.Email,
-		Specialist:   user.Specialist,
+	if role == "user" {
+		results := schema.ResponseLogin{
+			Id:           user.Id,
+			FirstName:    user.FirstName,
+			LastName:     user.LastName,
+			Username:     user.Username,
+			Email:        user.Email,
+			Specialist:   user.Specialist,
+			AccessToken:  access_token,
+			RefreshToken: refresh_token,
+		}
+		c.JSON(http.StatusOK, gin.H{"value": results})
+		return
+	}
+	results := schema.ResponseLoginCompany{
+		Id:           company.Id,
+		Name:         company.Name,
+		Email:        company.Email,
 		AccessToken:  access_token,
 		RefreshToken: refresh_token,
 	}
 	c.JSON(http.StatusOK, gin.H{"value": results})
+	return
 }
 
 func RefreshToken(c *gin.Context) {
-	var (
-		refresh_token string
-		user          schema.User
-	)
-	getToken := c.GetHeader("authorization")
-	fields := strings.Fields(getToken)
-	refresh_token = fields[1]
+	// Handle the refresh token request to issue a new access token.
 
-	tokenMaker, err := helpers.NewPasetoMaker()
-	if err != nil {
-		log.Fatal(err)
+	// Extract the refresh token from the request
+	var privateKey ed25519.PrivateKey
+	privateKey = helpers.PrivateKeyHandle()
+	var requestData struct {
+		RefreshToken string `json:"refresh_token"`
 	}
-
-	value, _ := c.Get("authorization_payload")
-	payload, _ := value.(*helpers.Payload)
-	err = helpers.Valid(payload)
-	if err != nil {
-		_resError(c, "unauthorized", err)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
-	token, _err := tokenMaker.CreateTokenPublic(refresh_token)
+
+	// Verify the refresh token
+	var refreshTokenClaims paseto.JSONToken
+	refreshTokenFooter := map[string]interface{}{
+		"type": "refresh",
+	}
+
+	_err := paseto.NewV2().Verify(requestData.RefreshToken, privateKey.Public().(ed25519.PublicKey), &refreshTokenClaims, &refreshTokenFooter)
 	if _err != nil {
-		_resError(c, "unauthorized", _err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
 		return
 	}
 
-	fmt.Println(user)
-	results := schema.ResponseRefresh{
-		Id:          user.Id,
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		Username:    user.Username,
-		Email:       user.Email,
-		Specialist:  user.Specialist,
-		AccessToken: token,
+	// If the token is valid, generate a new access token for the same user
+	accessToken, err := helpers.GenerateAccessToken(refreshTokenClaims.Subject, refreshTokenClaims.Audience, refreshTokenClaims.Issuer)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{"value": results})
+
+	c.JSON(http.StatusOK, gin.H{"access_token": accessToken})
 }

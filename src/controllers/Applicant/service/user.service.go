@@ -4,10 +4,15 @@ import (
 	"net/http"
 
 	"github.com/Din-27/Go_job/helpers"
+	"github.com/Din-27/Go_job/src/config"
 	"github.com/gin-gonic/gin"
 )
 
-var _resError = helpers.ResponseError
+var (
+	db        = config.DBinit()
+	_resError = helpers.ResponseError
+	_isErr    = helpers.ErrorReturn
+)
 
 func User(c *gin.Context) {
 	value, err := helpers.FetchGetProvinsi()

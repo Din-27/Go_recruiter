@@ -10,6 +10,7 @@ import (
 var _resError = helpers.ResponseError
 
 func ListProvince(c *gin.Context) {
+
 	value, err := helpers.FetchGetProvinsi()
 	if err != nil {
 		_resError(c, "error", err)
