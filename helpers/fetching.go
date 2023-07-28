@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+
 	"github.com/Din-27/Go_job/helpers/models"
 )
 
 func FetchGetProvinsi() (value []models.Provinsi, err error) {
-	url := "https://din-27.github.io/api-wilayah-indonesia/api/provinces.json" // Replace with the URL you want to fetch data from
+	url := fmt.Sprintf("%sprovinces.json", os.Getenv("API_STATE")) // Replace with the URL you want to fetch data from
 
 	// You can prepare your request data if needed
 	response, err := http.Get(url)
@@ -27,7 +29,7 @@ func FetchGetProvinsi() (value []models.Provinsi, err error) {
 }
 
 func FetchGetKabupaten(id_provinsi string) (data []models.Kabupaten, err error) {
-	url := fmt.Sprintf("https://din-27.github.io/api-wilayah-indonesia/api/regencies/%s.json", id_provinsi) // Replace with the URL you want to fetch data from
+	url := fmt.Sprintf("%sregencies/%s.json", os.Getenv("API_STATE"), id_provinsi) // Replace with the URL you want to fetch data from
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -45,7 +47,7 @@ func FetchGetKabupaten(id_provinsi string) (data []models.Kabupaten, err error) 
 }
 
 func FetchGetKecamatan(id_kabupaten string) (data []models.Kecamatan, err error) {
-	url := fmt.Sprintf("https://din-27.github.io/api-wilayah-indonesia/api/districts/%s.json", id_kabupaten) // Replace with the URL you want to fetch data from
+	url := fmt.Sprintf("%sdistricts/%s.json", os.Getenv("API_STATE"), id_kabupaten) // Replace with the URL you want to fetch data from
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -63,7 +65,7 @@ func FetchGetKecamatan(id_kabupaten string) (data []models.Kecamatan, err error)
 }
 
 func FetchGetKelurahan(id_kecamatan string) (value []models.Kelurahan, err error) {
-	url := fmt.Sprintf("https://din-27.github.io/api-wilayah-indonesia/api/villages/%s.json", id_kecamatan) // Replace with the URL you want to fetch data from
+	url := fmt.Sprintf("%svillages/%s.json", os.Getenv("API_STATE"), id_kecamatan) // Replace with the URL you want to fetch data from
 
 	response, err := http.Get(url)
 	if err != nil {

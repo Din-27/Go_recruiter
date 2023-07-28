@@ -1,10 +1,11 @@
-package service
+package auth
 
 import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Din-27/Go_job/helpers"
@@ -173,7 +174,7 @@ func RefreshToken(c *gin.Context) {
 	var newJsonToken paseto.JSONToken
 	var newFooter string
 	// Extract the refresh token from the request
-	b, _ := hex.DecodeString("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
+	b, _ := hex.DecodeString(os.Getenv("PUBLIC_KEY"))
 	publicKey := ed25519.PublicKey(b)
 	var requestData struct {
 		RefreshToken string `json:"refresh_token"`

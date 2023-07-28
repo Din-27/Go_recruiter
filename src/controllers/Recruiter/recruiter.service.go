@@ -1,4 +1,4 @@
-package service
+package recruiter
 
 import (
 	"net/http"

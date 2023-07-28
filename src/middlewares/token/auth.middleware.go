@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	publicKeyStr                  = "YOUR_BASE64_ENCODED_PUBLIC_KEY"
 	authorizationHeaderKey        = "authorization"
 	authorizationTypeBearer       = "bearer"
 	authorizationPayloadKey       = "authorization_payload"

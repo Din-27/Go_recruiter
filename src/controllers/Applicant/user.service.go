@@ -1,4 +1,4 @@
-package service
+package applicant
 
 import (
 	"net/http"

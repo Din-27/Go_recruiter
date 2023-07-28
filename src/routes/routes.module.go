@@ -1,11 +1,10 @@
 package routes
 
 import (
+	users "github.com/Din-27/Go_job/src/controllers/applicant"
+	auth "github.com/Din-27/Go_job/src/controllers/auth"
 
-	users "github.com/Din-27/Go_job/src/controllers/Applicant/service"
-	auth "github.com/Din-27/Go_job/src/controllers/Auth/service"
-
-	// company "github.com/Din-27/Go_job/src/controllers/Recruiter/service"
+	// company "github.com/Din-27/Go_job/src/controllers/recruiter/service"
 	states "github.com/Din-27/Go_job/src/controllers/state"
 
 	"github.com/Din-27/Go_job/src/middlewares/token"

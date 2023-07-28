@@ -7,7 +7,6 @@ import (
 )
 
 func AppRoutes() {
-	
 	router := gin.Default()
 	routes.Services(router)
 }
