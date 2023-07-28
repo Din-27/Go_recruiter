@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"os"
+
 	users "github.com/Din-27/Go_job/src/controllers/applicant"
 	auth "github.com/Din-27/Go_job/src/controllers/auth"
 
@@ -31,5 +33,5 @@ func Services(r *gin.Engine) {
 
 	authRoutes.GET("/user", users.User)
 
-	r.Run()
+	r.Run(os.Getenv("PORT"))
 }
