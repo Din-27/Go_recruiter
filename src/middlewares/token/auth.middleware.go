@@ -1,10 +1,12 @@
 package token
 
 import (
-	"encoding/base64"
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/Din-27/Go_job/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/o1egl/paseto"
 )
@@ -21,40 +23,38 @@ const (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Handle the protected endpoint that requires a valid access token.
+		var newJsonToken paseto.JSONToken
+		var newFooter string
+		authorizationHeader := c.GetHeader(authorizationHeaderKey)
 
-		// Get the PASETO token from the request header
-		tokenStr := c.GetHeader("Authorization")
-		if tokenStr == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+		if len(authorizationHeader) == 0 {
+			err := errors.New("authorization header is not provided")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
 			return
 		}
 
-		// Extract the token from the "Bearer <token>" format
-		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
-		if tokenStr == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+		fields := strings.Fields(authorizationHeader)
+		if len(fields) < 2 {
+			err := errors.New("invalid authorization header format")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
 			return
 		}
 
-		// Verify the PASETO token with the public key
-		pubKey, err := base64.RawURLEncoding.DecodeString(publicKeyStr)
+		authorizationType := strings.ToLower(fields[0])
+		if authorizationType != authorizationTypeBearer {
+			err := fmt.Errorf("unsupported authorization type %s", authorizationType)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
+			return
+		}
+
+		accessToken := fields[1]
+		err := paseto.NewV2().Decrypt(accessToken, helpers.SymmetricKey, &newJsonToken, &newFooter)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode public key"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
 			return
 		}
 
-		var accessTokenClaims paseto.JSONToken
-		accessTokenFooter := map[string]interface{}{
-			"type": "access",
-		}
-
-		err = paseto.NewV2().Verify(tokenStr, pubKey, &accessTokenClaims, &accessTokenFooter)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid access token"})
-			return
-		}
-
-		c.Set(authorizationPayloadKey, accessTokenClaims)
+		c.Set(authorizationPayloadKey, newJsonToken)
 		c.Next()
 	}
 

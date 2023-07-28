@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/ed25519"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,11 +16,12 @@ import (
 )
 
 var (
-	oneMonth  = 30 * 24 * time.Hour
-	db        = config.DBinit()
-	_resError = helpers.ResponseError
-	_isErr    = helpers.ErrorReturn
-	p         = &models.Params{
+	oneWeek     = 7 * 24 * time.Hour
+	fiveMinutes = 15 * time.Minute
+	db          = config.DBinit()
+	_resError   = helpers.ResponseError
+	_isErr      = helpers.ErrorReturn
+	p           = &models.Params{
 		Memory:      64 * 1024,
 		Iterations:  3,
 		Parallelism: 2,
@@ -130,12 +132,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	refresh_token, err := helpers.GenerateRefreshToken()
+	refresh_token, err := helpers.GenerateRefreshToken(user.Username, login.Email, role, oneWeek)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
 	}
-	access_token, err := helpers.GenerateAccessToken(user.Username, login.Email, role)
+
+	access_token, err := helpers.GenerateAccessToken(user.Username, login.Email, role, fiveMinutes)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -167,10 +170,11 @@ func Login(c *gin.Context) {
 
 func RefreshToken(c *gin.Context) {
 	// Handle the refresh token request to issue a new access token.
-
+	var newJsonToken paseto.JSONToken
+	var newFooter string
 	// Extract the refresh token from the request
-	var privateKey ed25519.PrivateKey
-	privateKey = helpers.PrivateKeyHandle()
+	b, _ := hex.DecodeString("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
+	publicKey := ed25519.PublicKey(b)
 	var requestData struct {
 		RefreshToken string `json:"refresh_token"`
 	}
@@ -179,24 +183,25 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// Verify the refresh token
-	var refreshTokenClaims paseto.JSONToken
-	refreshTokenFooter := map[string]interface{}{
-		"type": "refresh",
-	}
-
-	_err := paseto.NewV2().Verify(requestData.RefreshToken, privateKey.Public().(ed25519.PublicKey), &refreshTokenClaims, &refreshTokenFooter)
-	if _err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+	if err := paseto.NewV2().Verify(requestData.RefreshToken, publicKey, &newJsonToken, &newFooter); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("Invalid refresh token %s", err)})
 		return
 	}
+	username := newJsonToken.Get("username")
+	email := newJsonToken.Get("email")
+	role := newJsonToken.Get("role")
 
-	// If the token is valid, generate a new access token for the same user
-	accessToken, err := helpers.GenerateAccessToken(refreshTokenClaims.Subject, refreshTokenClaims.Audience, refreshTokenClaims.Issuer)
+	// If the token is valid, generate a new access token forthe same user
+	accessToken, err := helpers.GenerateAccessToken(username, email, role, fiveMinutes)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return
 	}
+	refresh_token, err := helpers.GenerateRefreshToken(username, email, role, oneWeek)
+	if err != nil {
+		_resError(c, "server internal error", err)
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"access_token": accessToken})
+	c.JSON(http.StatusOK, gin.H{"access_token": accessToken, "refresh_token": refresh_token})
 }

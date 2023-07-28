@@ -2,55 +2,37 @@ package helpers
 
 import (
 	"crypto/ed25519"
-	"crypto/rand"
-	"encoding/base64"
-	"fmt"
+	"encoding/hex"
 	"time"
 
 	"github.com/o1egl/paseto"
 )
 
+var SymmetricKey = []byte("YELLOW SUBMARINE, BLACK WIZARDRY") // Must be 32 bytes
+
 const (
-	PublicKeyStr  = "YOUR_BASE64_ENCODED_PUBLIC_KEY"
-	PrivateKeyStr = "YOUR_BASE64_ENCODED_PRIVATE_KEY"
 	tokenDuration = 15 * time.Minute // Adjust as per your requirements
 )
 
-func PrivateKeyHandle() []byte {
-	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		fmt.Println("Error generating key pair:", err)
-		return nil
-	}
-	privKey := base64.RawURLEncoding.EncodeToString(privateKey)
-	if err != nil {
-		fmt.Println("Error decoding private key:", err)
-		return nil
-	}
-	privateKey = ed25519.PrivateKey(privKey)
-	return privateKey
-}
-
-func GenerateAccessToken(username, email, role string) (string, error) {
-	privateKey := PrivateKeyHandle()
+func GenerateAccessToken(username, email, role string, durasi time.Duration) (string, error) {
 	now := time.Now()
-	expiration := now.Add(15 * time.Minute)
+	exp := now.Add(durasi)
+	nbt := now
 
-	// Create a new PASETO token for the access token
-	accessToken := paseto.JSONToken{
-		Subject:    username,
-		Audience:   email,
-		Issuer:     role,
-		Expiration: expiration,
+	jsonToken := paseto.JSONToken{
+		Audience:   username,
+		Issuer:     email,
+		Subject:    role,
+		IssuedAt:   now,
+		Expiration: exp,
+		NotBefore:  nbt,
 	}
-	accessTokenFooter := map[string]interface{}{
-		"type": "access",
-	}
+	// Add custom claim    to the token
+	jsonToken.Set("data", "this is a signed message")
+	footer := "access"
 
-	// Sign the access token with the private key
-
-	// Sign the access token with the private key
-	token, err := paseto.NewV2().Sign(privateKey, &accessToken, accessTokenFooter)
+	// Encrypt data
+	token, err := paseto.NewV2().Encrypt(SymmetricKey, jsonToken, footer)
 	if err != nil {
 		return "", err
 	}
@@ -58,23 +40,22 @@ func GenerateAccessToken(username, email, role string) (string, error) {
 	return token, nil
 }
 
-func GenerateRefreshToken() (string, error) {
-	privateKey := PrivateKeyHandle()
-	refreshTokenBytes := make([]byte, 32)
-	_, err := rand.Read(refreshTokenBytes)
-	if err != nil {
-		return "", err
+func GenerateRefreshToken(username, email, role string, durasi time.Duration) (string, error) {
+	b, _ := hex.DecodeString("b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
+	privateKey := ed25519.PrivateKey(b)
+
+	jsonToken := paseto.JSONToken{
+		Expiration: time.Now().Add(durasi),
 	}
 
-	// Create a new PASETO token for the refresh token
-	refreshToken := paseto.JSONToken{}
-	refreshTokenFooter := map[string]interface{}{"type": "refresh"}
+	// Add custom claim    to the token
+	jsonToken.Set("username", username)
+	jsonToken.Set("email", email)
+	jsonToken.Set("role", role)
+	footer := "refresh"
 
-	// Sign the refresh token with the private key
-	token, err := paseto.NewV2().Sign(privateKey, &refreshToken, refreshTokenFooter)
-	if err != nil {
-		return "", err
-	}
+	// Sign data
+	token, err := paseto.NewV2().Sign(privateKey, jsonToken, footer)
 
-	return token, nil
+	return token, err
 }
