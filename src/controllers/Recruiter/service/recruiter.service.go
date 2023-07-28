@@ -1,11 +1,11 @@
-package recruiter
+package service
 
 import (
 	"net/http"
 
 	"github.com/Din-27/Go_job/helpers"
 	"github.com/Din-27/Go_job/src/config"
-	"github.com/Din-27/Go_job/src/controllers/Recruiter/schema"
+	"github.com/Din-27/Go_job/src/controllers/recruiter/schema"
 	"github.com/gin-gonic/gin"
 )
 

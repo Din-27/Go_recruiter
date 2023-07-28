@@ -3,11 +3,11 @@ package routes
 import (
 	"os"
 
-	users "github.com/Din-27/Go_job/src/controllers/applicant"
-	auth "github.com/Din-27/Go_job/src/controllers/auth"
+	users "github.com/Din-27/Go_job/src/controllers/applicant/service"
+	auth "github.com/Din-27/Go_job/src/controllers/auth/service"
 
 	// company "github.com/Din-27/Go_job/src/controllers/recruiter/service"
-	states "github.com/Din-27/Go_job/src/controllers/state"
+	states "github.com/Din-27/Go_job/src/controllers/state/service"
 
 	"github.com/Din-27/Go_job/src/middlewares/token"
 	"github.com/gin-gonic/gin"
