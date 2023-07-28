@@ -1,4 +1,4 @@
-package helpers
+package utils
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Din-27/Go_job/helpers/models"
+	"github.com/Din-27/Go_job/internal/models"
 )
 
 func FetchGetProvinsi() (value []models.Provinsi, err error) {

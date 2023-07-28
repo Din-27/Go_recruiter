@@ -1,27 +1,22 @@
-package service
+package handler
 
 import (
-	"crypto/ed25519"
-	"encoding/hex"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/Din-27/Go_job/helpers"
-	"github.com/Din-27/Go_job/helpers/models"
-	"github.com/Din-27/Go_job/src/config"
-	"github.com/Din-27/Go_job/src/controllers/Auth/schema"
+	"github.com/Din-27/Go_job/internal/config"
+	"github.com/Din-27/Go_job/internal/models"
+	"github.com/Din-27/Go_job/internal/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/o1egl/paseto"
 )
 
 var (
 	oneWeek     = 7 * 24 * time.Hour
 	fiveMinutes = 15 * time.Minute
 	db          = config.DBinit()
-	_resError   = helpers.ResponseError
-	_isErr      = helpers.ErrorReturn
+	_resError   = utils.ResponseError
+	_isErr      = utils.ErrorReturn
 	p           = &models.Params{
 		Memory:      64 * 1024,
 		Iterations:  3,
@@ -47,47 +42,55 @@ func Register(c *gin.Context) {
 
 	role := c.Param("role")
 	if role == "user" {
-		var user schema.User
+		var user models.User
 		if err := c.ShouldBindJSON(&user); err != nil {
 			_resError(c, "error", err)
 			return
 		}
-
-		encodedHash, err := helpers.GenerateFromPassword(user.Password, p)
+		user.Role = role
+		err := utils.ValidateBody(user)
+		if err != nil {
+			_resError(c, "server internal error", err)
+			return
+		}
+		encodedHash, err := utils.GenerateFromPassword(user.Password, p)
 		if err != nil {
 			_resError(c, "server internal error", err)
 		}
 		user.Password = encodedHash
-		user.Role = role
 		fmt.Println(user)
 
-		result := db.Create(&user)
-		if result.Error != nil {
-			_resError(c, "server internal error", result.Error)
-			return
-		}
+		// result := db.Create(&user)
+		// if result.Error != nil {
+		// 	_resError(c, "server internal error", result.Error)
+		// 	return
+		// }
 		c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": user})
 		return
 	}
-	var company schema.User
+	var company models.Company
 	if err := c.ShouldBindJSON(&company); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-
-	encodedHash, err := helpers.GenerateFromPassword(company.Password, p)
+	company.Role = role
+	err := utils.ValidateBody(company)
+	if err != nil {
+		_resError(c, "server internal error", err)
+		return
+	}
+	encodedHash, err := utils.GenerateFromPassword(company.Password, p)
 	if err != nil {
 		_resError(c, "server internal error", err)
 	}
 	company.Password = encodedHash
-	company.Role = role
 	fmt.Println(company)
 
-	result := db.Create(&company)
-	if result.Error != nil {
-		_resError(c, "server internal error", result.Error)
-		return
-	}
+	// result := db.Create(&company)
+	// if result.Error != nil {
+	// 	_resError(c, "server internal error", result.Error)
+	// 	return
+	// }
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": company})
 	return
 
@@ -95,9 +98,9 @@ func Register(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	var (
-		login   schema.Login
-		user    schema.User
-		company schema.Company
+		login   models.Login
+		user    models.User
+		company models.Company
 	)
 	role := c.Param("role")
 	if err := c.ShouldBindJSON(&login); err != nil {
@@ -118,12 +121,12 @@ func Login(c *gin.Context) {
 		_resError(c, "error", _isErr("Email tidak ditemukan !"))
 		return
 	}
-	encodedHash, err := helpers.GenerateFromPassword(login.Password, p)
+	encodedHash, err := utils.GenerateFromPassword(login.Password, p)
 	if err != nil {
 		_resError(c, "server internal error", err)
 	}
 	user.Password = encodedHash
-	match, _err := helpers.ComparePasswordAndHash(login.Password, user.Password)
+	match, _err := utils.ComparePasswordAndHash(login.Password, user.Password)
 	if _err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -133,19 +136,18 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	refresh_token, err := helpers.GenerateRefreshToken(user.Username, login.Email, role, oneWeek)
+	refresh_token, err := utils.GenerateRefreshToken(user.Username, login.Email, role, oneWeek)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
 	}
-
-	access_token, err := helpers.GenerateAccessToken(user.Username, login.Email, role, fiveMinutes)
+	access_token, err := utils.GenerateAccessToken(user.Username, login.Email, role, fiveMinutes)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
 	}
 	if role == "user" {
-		results := schema.ResponseLogin{
+		results := models.ResponseLogin{
 			Id:           user.Id,
 			FirstName:    user.FirstName,
 			LastName:     user.LastName,
@@ -158,7 +160,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"value": results})
 		return
 	}
-	results := schema.ResponseLoginCompany{
+	results := models.ResponseLoginCompany{
 		Id:           company.Id,
 		Name:         company.Name,
 		Email:        company.Email,
@@ -170,12 +172,7 @@ func Login(c *gin.Context) {
 }
 
 func RefreshToken(c *gin.Context) {
-	// Handle the refresh token request to issue a new access token.
-	var newJsonToken paseto.JSONToken
-	var newFooter string
-	// Extract the refresh token from the request
-	b, _ := hex.DecodeString(os.Getenv("PUBLIC_KEY"))
-	publicKey := ed25519.PublicKey(b)
+
 	var requestData struct {
 		RefreshToken string `json:"refresh_token"`
 	}
@@ -184,21 +181,19 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	if err := paseto.NewV2().Verify(requestData.RefreshToken, publicKey, &newJsonToken, &newFooter); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("Invalid refresh token %s", err)})
-		return
-	}
-	username := newJsonToken.Get("username")
-	email := newJsonToken.Get("email")
-	role := newJsonToken.Get("role")
-
-	// If the token is valid, generate a new access token forthe same user
-	accessToken, err := helpers.GenerateAccessToken(username, email, role, fiveMinutes)
+	result, err := utils.DecodedToken(requestData.RefreshToken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return
 	}
-	refresh_token, err := helpers.GenerateRefreshToken(username, email, role, oneWeek)
+
+	// If the token is valid, generate a new access token forthe same user
+	accessToken, err := utils.GenerateAccessToken(result.Username, result.Email, result.Role, fiveMinutes)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		return
+	}
+	refresh_token, err := utils.GenerateRefreshToken(result.Username, result.Email, result.Role, oneWeek)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return

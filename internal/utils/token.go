@@ -1,4 +1,4 @@
-package helpers
+package utils
 
 import (
 	"crypto/ed25519"
@@ -7,33 +7,30 @@ import (
 	"time"
 
 	"github.com/o1egl/paseto"
+	"golang.org/x/crypto/argon2"
 )
 
-var SymmetricKey = []byte(os.Getenv("SYMETRIC_KEY")) // Must be 32 bytes
+var (
+	value        = os.Getenv("SYMETRIC_KEY")
+	symmetricKey = []byte(value) // Must be 32 bytes
+	Key          = argon2.IDKey([]byte(symmetricKey), []byte("asdoiwje#"), 1, 64*1024, 4, 32)
+)
 
 const (
 	tokenDuration = 15 * time.Minute // Adjust as per your requirements
 )
 
 func GenerateAccessToken(username, email, role string, durasi time.Duration) (string, error) {
-	now := time.Now()
-	exp := now.Add(durasi)
-	nbt := now
-
 	jsonToken := paseto.JSONToken{
-		Audience:   username,
-		Issuer:     email,
-		Subject:    role,
-		IssuedAt:   now,
-		Expiration: exp,
-		NotBefore:  nbt,
+		Expiration: time.Now().Add(durasi),
 	}
-	// Add custom claim    to the token
-	jsonToken.Set("data", "this is a signed message")
+	jsonToken.Set("username", username)
+	jsonToken.Set("email", email)
+	jsonToken.Set("role", role)
 	footer := "access"
 
 	// Encrypt data
-	token, err := paseto.NewV2().Encrypt(SymmetricKey, jsonToken, footer)
+	token, err := paseto.NewV2().Encrypt(Key, jsonToken, footer)
 	if err != nil {
 		return "", err
 	}

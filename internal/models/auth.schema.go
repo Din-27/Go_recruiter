@@ -1,4 +1,4 @@
-package schema
+package models
 
 type User struct {
 	Id         int    `gorm:"column:id_user" json:"id_user"`
@@ -53,4 +53,10 @@ type ResponseRefresh struct {
 	Specialist   string `json:"specialist" validate:"required"`
 	AccessToken  string `json:"access_token" validate:"required"`
 	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+type Decoded struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
 }

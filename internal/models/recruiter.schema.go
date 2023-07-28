@@ -1,4 +1,4 @@
-package schema
+package models
 
 type DetailPerusahaan struct {
 	Id             int    `gorm:"column:id_perusahaan" json:"id_perusahaan"`

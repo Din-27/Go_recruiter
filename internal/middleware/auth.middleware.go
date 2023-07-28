@@ -1,4 +1,4 @@
-package token
+package middleware
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Din-27/Go_job/helpers"
+	"github.com/Din-27/Go_job/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/o1egl/paseto"
 )
@@ -28,31 +28,30 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		if len(authorizationHeader) == 0 {
 			err := errors.New("authorization header is not provided")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 			return
 		}
 
 		fields := strings.Fields(authorizationHeader)
 		if len(fields) < 2 {
 			err := errors.New("invalid authorization header format")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 			return
 		}
 
 		authorizationType := strings.ToLower(fields[0])
 		if authorizationType != authorizationTypeBearer {
 			err := fmt.Errorf("unsupported authorization type %s", authorizationType)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 			return
 		}
 
 		accessToken := fields[1]
-		err := paseto.NewV2().Decrypt(accessToken, helpers.SymmetricKey, &newJsonToken, &newFooter)
+		err := paseto.NewV2().Decrypt(accessToken, utils.Key, &newJsonToken, &newFooter)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, helpers.ErrorResponse(err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 			return
 		}
-
 		c.Set(authorizationPayloadKey, newJsonToken)
 		c.Next()
 	}

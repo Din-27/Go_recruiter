@@ -1,22 +1,14 @@
-package service
+package handler
 
 import (
 	"net/http"
 
-	"github.com/Din-27/Go_job/helpers"
-	"github.com/Din-27/Go_job/src/config"
-	"github.com/Din-27/Go_job/src/controllers/recruiter/schema"
+	"github.com/Din-27/Go_job/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	db        = config.DBinit()
-	_resError = helpers.ResponseError
-	_isErr    = helpers.ErrorReturn
-)
-
 func AddProfileCompany(c *gin.Context) {
-	var company schema.DetailPerusahaan
+	var company models.DetailPerusahaan
 	if err := c.ShouldBindJSON(&company); err != nil {
 		_resError(c, "error", err)
 		return
@@ -30,7 +22,7 @@ func AddProfileCompany(c *gin.Context) {
 }
 
 func GetProfileCompany(c *gin.Context) {
-	var company schema.DetailPerusahaan
+	var company models.DetailPerusahaan
 	if err := c.ShouldBindJSON(&company); err != nil {
 		_resError(c, "error", err)
 		return
