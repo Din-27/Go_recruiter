@@ -15,7 +15,7 @@ func Services(r *gin.Engine) {
 	router.POST("/register/:role", handler.Register)
 	router.POST("/login/:role", handler.Login)
 
-	router.POST("/refresh_token", handler.RefreshToken)
+	router.GET("/refresh_token", handler.RefreshToken)
 
 	authRoutes := router.Use(token.AuthMiddleware())
 
@@ -24,7 +24,8 @@ func Services(r *gin.Engine) {
 	authRoutes.GET("/kecamatan/:id_kabupaten", handler.ListKecamatan)
 	authRoutes.GET("/kelurahan/:id_kecamatan", handler.ListKelurahan)
 
-	authRoutes.GET("/user", handler.User)
-
+	authRoutes.GET("/user", handler.GetUserById)
+	authRoutes.POST("/detail/user", handler.AddUserDetail)
+	authRoutes.GET("/test", handler.GetHIstoryLamaranUser)
 	r.Run()
 }

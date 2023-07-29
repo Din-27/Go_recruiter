@@ -8,21 +8,18 @@ type User struct {
 	Email      string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
 	Password   string `gorm:"type:varchar(255)" json:"password" validate:"required"`
 	Specialist string `gorm:"type:varchar(255)" json:"specialist" validate:"required"`
-	Role       string `gorm:"type:varchar(255)" json:"role" validate:"required"`
 }
 
-type Company struct {
+type Perusahaan struct {
 	Id       int    `gorm:"column:id_company" json:"id_company"`
-	Name     string `gorm:"type:varchar(255)" json:"name" validate:"required"`
+	Nama     string `gorm:"type:varchar(255)" json:"nama" validate:"required"`
 	Email    string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
 	Password string `gorm:"type:varchar(255)" json:"password" validate:"required"`
-	Role     string `gorm:"type:varchar(255)" json:"role" validate:"required"`
 }
 
 type Login struct {
 	Email    string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
 	Password string `gorm:"type:varchar(255)" json:"password" validate:"required"`
-	Role     string `gorm:"type:varchar(255)" json:"role" validate:"required"`
 }
 
 type ResponseLogin struct {

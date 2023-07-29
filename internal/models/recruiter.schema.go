@@ -12,11 +12,3 @@ type DetailPerusahaan struct {
 	Logo           string `gorm:"type:varchar(255)" json:"logo"`
 	Background     string `gorm:"type:varchar(255)" json:"background"`
 }
-
-type Perusahaan struct {
-	Id       int    `gorm:"column:id_perusahaan" json:"id_perusahaan"`
-	Nama     string `gorm:"type:varchar(255)" json:"nama" validate:"required"`
-	Email    string `gorm:"type:varchar(255)" json:"email" validate:"required,email"`
-	Password string `gorm:"type:varchar(255)" json:"password" validate:"required"`
-	Role     string `gorm:"type:varchar(255)" json:"role"`
-}
