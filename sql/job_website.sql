@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 29, 2023 at 09:43 AM
+-- Generation Time: Jul 30, 2023 at 04:34 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -20,6 +20,31 @@ SET time_zone = "+00:00";
 --
 -- Database: `job_website`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `apply_lamaran_users`
+--
+
+CREATE TABLE `apply_lamaran_users` (
+  `id_user` int(11) NOT NULL,
+  `pesan` text NOT NULL,
+  `id_company` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `benefit_lowongan_perusahaans`
+--
+
+CREATE TABLE `benefit_lowongan_perusahaans` (
+  `id_company` int(11) NOT NULL,
+  `nama` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -56,6 +81,36 @@ CREATE TABLE `detail_users` (
   `alamat` text DEFAULT NULL,
   `tanggal_lahir` date DEFAULT NULL,
   `cv` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `keahlian_users`
+--
+
+CREATE TABLE `keahlian_users` (
+  `id_user` int(11) NOT NULL,
+  `nama_keahlian` varchar(255) NOT NULL,
+  `level` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lowongan_perusahaans`
+--
+
+CREATE TABLE `lowongan_perusahaans` (
+  `id_company` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `deskripsi` text NOT NULL,
+  `min_gaji` int(11) NOT NULL,
+  `max_gaji` int(11) NOT NULL,
+  `poster` varchar(255) NOT NULL,
+  `durasi_lowongan` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -128,6 +183,18 @@ CREATE TABLE `perusahaans` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `requirement_lowongan_perusahaans`
+--
+
+CREATE TABLE `requirement_lowongan_perusahaans` (
+  `id_company` int(11) NOT NULL,
+  `nama` varchar(255) NOT NULL,
+  `deskripsi` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -149,7 +216,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_user`, `first_name`, `last_name`, `username`, `email`, `password`, `specialist`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'heii', 'test', 'test', 'test12@mail.com', '$argon2id$v=19$m=65536,t=3,p=2$gZK9Ot66OpK356rIu/hr4g$J2JYVl0Je2SjX4TrvRKIUCmi8kc6pemJoNpTcLXlOPI', 'test', NULL, '2023-07-29 07:38:33', '2023-07-29 07:38:33');
+(2, 'heii', 'test', 'test', 'test1@mail.com', '$argon2id$v=19$m=65536,t=3,p=2$14axJPPsJfJC0gPIAsDTgw$0qnzngAqPsKJcRdgJsIMr+HAW/pL4P987Uek7U136cA', 'test', 'user', '2023-07-29 08:22:54', '2023-07-29 08:22:54'),
+(3, 'heii', 'test', 'test', 'test12@mail.com', '$argon2id$v=19$m=65536,t=3,p=2$KNZuLE4JUIHEYQt3w4wfQg$GGhyLNab6hGU/miI+psp4R0XKPe9dLjJmuk7GfbKQJc', 'test', 'user', '2023-07-29 08:23:05', '2023-07-29 08:23:05');
 
 --
 -- Indexes for dumped tables
@@ -181,7 +249,7 @@ ALTER TABLE `perusahaans`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
