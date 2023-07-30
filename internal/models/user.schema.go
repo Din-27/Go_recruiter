@@ -53,11 +53,8 @@ type GetUserByIdResponse struct {
 	PendidikanNonFormalUser []PendidikanNonFormalUser
 }
 
-type LamaranUser struct {
-	Fullname string
-	DetailUser
-	KeahlianUsers           []KeahlianUsers
-	PendidikanFormalUser    []PendidikanFormalUser
-	PengalamanUser          []PengalamanUser
-	PendidikanNonFormalUser []PendidikanNonFormalUser
+type ApplyLamaranUser struct {
+	Id        int    `gorm:"column:id_user" json:"id_user"`
+	Pesan     string `gorm:"type:text" json:"pesan"`
+	IdCompany int    `gorm:"column:id_company" json:"id_company"`
 }

@@ -26,6 +26,6 @@ func Services(r *gin.Engine) {
 
 	authRoutes.GET("/user", handler.GetUserById)
 	authRoutes.POST("/detail/user", handler.AddUserDetail)
-	authRoutes.GET("/test", handler.GetHIstoryLamaranUser)
+	authRoutes.GET("/apply", handler.ApplyLamaranUser)
 	r.Run()
 }

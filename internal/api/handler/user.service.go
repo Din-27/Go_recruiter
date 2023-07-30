@@ -148,8 +148,31 @@ func AddUserKeahlian(c *gin.Context) {
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": "sukses menambahkan keahlian anda"})
 }
 
-func GetHIstoryLamaranUser(c *gin.Context) {
-
+func ApplyLamaranUser(c *gin.Context) {
+	var (
+		user  models.User
+		apply models.ApplyLamaranUser
+	)
+	if err := c.ShouldBindJSON(&apply); err != nil {
+		_resError(c, "error", err)
+		return
+	}
+	data, err := utils.DecodedTokenBearer(c)
+	if err != nil {
+		_resError(c, "server internal error", err)
+		return
+	}
+	getIdUser := db.Where("email = ?", data.Email).Take(&user)
+	if getIdUser.Error != nil {
+		_resError(c, "error", getIdUser.Error)
+		return
+	}
+	apply.Id = user.Id
+	result := db.Create(&apply)
+	if result.Error != nil {
+		_resError(c, "server internal error", result.Error)
+		return
+	}
 }
 
 func GetUserById(c *gin.Context) {
