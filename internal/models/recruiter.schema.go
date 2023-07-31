@@ -2,7 +2,6 @@ package models
 
 type DetailPerusahaan struct {
 	Id             int    `gorm:"column:id_company" json:"id_company"`
-	Nama           string `gorm:"type:varchar(255)" json:"nama"`
 	Alamat         string `gorm:"type:text" json:"alamat"`
 	Deskripsi      string `gorm:"type:text" json:"deskripsi"`
 	Bidang         string `gorm:"type:text" json:"bidang"`
@@ -15,7 +14,7 @@ type DetailPerusahaan struct {
 
 type LowonganPerusahaan struct {
 	Id             int    `gorm:"column:id_company" json:"id_company"`
-	IdLowongan     int    `gorm:"column:id_lowongan" json:"id_lowongan"`
+	IdLowongan     int    `gorm:"primaryKey" json:"id_lowongan"`
 	Title          string `gorm:"type:varchar(255)" json:"title"`
 	Deskripsi      string `gorm:"type:text" json:"deskripsi"`
 	MinGaji        int    `gorm:"type:int" json:"min_gaji"`
@@ -25,14 +24,16 @@ type LowonganPerusahaan struct {
 }
 
 type RequirementLowonganPerusahaan struct {
-	Id        int    `gorm:"column:id" json:"id"`
-	Nama      string `gorm:"type:varchar(255)" json:"nama"`
-	Deskripsi string `gorm:"type:text" json:"deskripsi"`
+	Id         int    `json:"id"`
+	IdLowongan int    `json:"id_lowongan"`
+	Nama       string `gorm:"type:varchar(255)" json:"nama"`
+	Deskripsi  string `gorm:"type:text" json:"deskripsi"`
 }
 
 type BenefitLowonganPerusahaan struct {
-	Id   int    `gorm:"column:id" json:"id"`
-	Nama string `gorm:"type:varchar(255)" json:"nama"`
+	Id         int    `json:"id"`
+	IdLowongan int    `json:"id_lowongan"`
+	Nama       string `gorm:"type:varchar(255)" json:"nama"`
 }
 
 type DetailLowongan struct {
@@ -48,27 +49,27 @@ type DetailLowongan struct {
 }
 
 type AddLowongan struct {
-	Id             int    `gorm:"column:id_lowongan" json:"id_lowongan"`
-	Title          string `gorm:"type:varchar(255)" json:"title"`
-	Deskripsi      string `gorm:"type:text" json:"deskripsi"`
-	MinGaji        int    `gorm:"type:int" json:"min_gaji"`
-	MaxGaji        int    `gorm:"type:int" json:"max_gaji"`
-	Poster         string `gorm:"type:varchar(255)" json:"poster"`
-	DurasiLowongan string `gorm:"type:date" json:"durasi_lowongan"`
-	Requirement    []RequirementLowonganPerusahaan
-	Benefit        []BenefitLowonganPerusahaan
+	Id             int                             `gorm:"column:id_lowongan" json:"id_lowongan"`
+	Title          string                          `gorm:"type:varchar(255)" json:"title"`
+	Deskripsi      string                          `gorm:"type:text" json:"deskripsi"`
+	MinGaji        int                             `gorm:"type:int" json:"min_gaji"`
+	MaxGaji        int                             `gorm:"type:int" json:"max_gaji"`
+	Poster         string                          `gorm:"type:varchar(255)" json:"poster"`
+	DurasiLowongan string                          `gorm:"type:date" json:"durasi_lowongan"`
+	Requirement    []RequirementLowonganPerusahaan `json:"requirement"`
+	Benefit        []BenefitLowonganPerusahaan     `json:"benefit"`
 }
 
 type GetCompanyByIdResponse struct {
-	Id             int            `json:"id_company"`
-	Nama           string         `json:"nama"`
-	Alamat         string         `json:"alamat"`
-	Deskripsi      string         `json:"deskripsi"`
-	Bidang         string         `json:"bidang"`
-	Pencapaian     string         `json:"pencapaian"`
-	JumlahKaryawan int            `json:"jumlah_karyawan"`
-	Website        string         `json:"website"`
-	Logo           string         `json:"logo"`
-	Background     string         `json:"background"`
-	DetailLowongan DetailLowongan `json:"detail_lowongan"`
+	Id             int              `json:"id_company"`
+	Nama           string           `json:"nama"`
+	Alamat         string           `json:"alamat"`
+	Deskripsi      string           `json:"deskripsi"`
+	Bidang         string           `json:"bidang"`
+	Pencapaian     string           `json:"pencapaian"`
+	JumlahKaryawan int              `json:"jumlah_karyawan"`
+	Website        string           `json:"website"`
+	Logo           string           `json:"logo"`
+	Background     string           `json:"background"`
+	DetailLowongan []DetailLowongan `json:"detail_lowongan"`
 }

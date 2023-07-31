@@ -10,12 +10,9 @@ import (
 )
 
 func AddUserDetail(c *gin.Context) {
-	var (
-		user        models.User
-		user_detail models.DetailUser
-	)
+	var user_detail models.DetailUser
 
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -24,12 +21,8 @@ func AddUserDetail(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
-	getIdUser := db.Where("email = ?", data.Email).Take(&user)
-	if getIdUser.Error != nil {
-		_resError(c, "server internal error", getIdUser.Error)
-		return
-	}
-	user_detail.Id = user.Id
+
+	user_detail.Id = data.Id
 	result := db.Create(&user_detail)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
@@ -39,15 +32,13 @@ func AddUserDetail(c *gin.Context) {
 }
 
 func AddUserPendidikanFormal(c *gin.Context) {
-	var (
-		user        models.User
-		formal_user models.PendidikanFormalUser
-	)
+	var formal_user models.PendidikanFormalUser
+
 	if err := c.ShouldBindJSON(&formal_user); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -56,12 +47,7 @@ func AddUserPendidikanFormal(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
-	getIdUser := db.Where("email = ?", data.Email).Take(&user)
-	if getIdUser.Error != nil {
-		_resError(c, "server internal error", getIdUser.Error)
-		return
-	}
-	formal_user.Id = user.Id
+	formal_user.Id = data.Id
 	result := db.Create(&formal_user)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
@@ -71,15 +57,13 @@ func AddUserPendidikanFormal(c *gin.Context) {
 }
 
 func AddUserPendidikanNonFormal(c *gin.Context) {
-	var (
-		user            models.User
-		non_formal_user models.PendidikanNonFormalUser
-	)
+	var non_formal_user models.PendidikanNonFormalUser
+
 	if err := c.ShouldBindJSON(&non_formal_user); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -88,12 +72,7 @@ func AddUserPendidikanNonFormal(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
-	getIdUser := db.Where("email = ?", data.Email).Take(&user)
-	if getIdUser.Error != nil {
-		_resError(c, "server internal error", getIdUser.Error)
-		return
-	}
-	non_formal_user.Id = user.Id
+	non_formal_user.Id = data.Id
 	result := db.Create(&non_formal_user)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
@@ -103,15 +82,13 @@ func AddUserPendidikanNonFormal(c *gin.Context) {
 }
 
 func AddUserPengalaman(c *gin.Context) {
-	var (
-		user            models.User
-		pengalaman_user models.PengalamanUser
-	)
+	var pengalaman_user models.PengalamanUser
+
 	if err := c.ShouldBindJSON(&pengalaman_user); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -120,12 +97,7 @@ func AddUserPengalaman(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
-	getIdUser := db.Where("email = ?", data.Email).Take(&user)
-	if getIdUser.Error != nil {
-		_resError(c, "server internal error", getIdUser.Error)
-		return
-	}
-	pengalaman_user.Id = user.Id
+	pengalaman_user.Id = data.Id
 	result := db.Create(&pengalaman_user)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
@@ -135,15 +107,13 @@ func AddUserPengalaman(c *gin.Context) {
 }
 
 func AddUserKeahlian(c *gin.Context) {
-	var (
-		user          models.User
-		keahlian_user models.KeahlianUsers
-	)
+	var keahlian_user models.KeahlianUsers
+
 	if err := c.ShouldBindJSON(&keahlian_user); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -152,12 +122,8 @@ func AddUserKeahlian(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
-	getIdUser := db.Where("email = ?", data.Email).Take(&user)
-	if getIdUser.Error != nil {
-		_resError(c, "server internal error", getIdUser.Error)
-		return
-	}
-	keahlian_user.Id = user.Id
+
+	keahlian_user.Id = data.Id
 	result := db.Create(&keahlian_user)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
@@ -167,15 +133,13 @@ func AddUserKeahlian(c *gin.Context) {
 }
 
 func ApplyLamaranUser(c *gin.Context) {
-	var (
-		user  models.User
-		apply models.ApplyLamaranUser
-	)
+	var apply models.ApplyLamaranUser
+
 	if err := c.ShouldBindJSON(&apply); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -184,12 +148,8 @@ func ApplyLamaranUser(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
-	getIdUser := db.Where("email = ?", data.Email).Take(&user)
-	if getIdUser.Error != nil {
-		_resError(c, "error", getIdUser.Error)
-		return
-	}
-	apply.IdUser = user.Id
+
+	apply.IdUser = data.Id
 	checkLamaran := db.Where("id_user = ? and id_company = ?", apply.IdUser, apply.IdCompany).Find(&apply)
 	if checkLamaran.RowsAffected == 1 {
 		_resError(c, "error", _isErr("Anda sudah melamar ke perusahaan ini !"))
@@ -243,7 +203,7 @@ func GetUserById(c *gin.Context) {
 	// 	_resError(c, "error", keahlian_user.Error)
 	// 	return
 	// }
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -282,12 +242,9 @@ func GetUserById(c *gin.Context) {
 
 func GetUserHistoryLamaranById(c *gin.Context) {
 	// id_user := c.Param("id_user")
-	var (
-		user  models.User
-		apply []models.ApplyLamaranUser
-	)
+	var apply []models.ApplyLamaranUser
 
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -297,9 +254,7 @@ func GetUserHistoryLamaranById(c *gin.Context) {
 		return
 	}
 	// obj
-	db.Where("email = ?", data.Email).Take(&user)
-
-	db.Where("id_user = ?", user.Id).Find(&apply)
+	db.Where("id_user = ?", data.Id).Find(&apply)
 
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": apply})
 }

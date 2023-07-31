@@ -37,6 +37,8 @@ func Services(r *gin.Engine) {
 
 	// PERUSAHAAN
 	authRoutes.GET("/company", handler.GetProfileCompany)
+	authRoutes.POST("/profile/company", handler.AddProfileCompany)
+	authRoutes.POST("/lowongan/company", handler.AddLowongan)
 
 	r.Run()
 }

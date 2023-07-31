@@ -10,11 +10,12 @@ import (
 
 func AddProfileCompany(c *gin.Context) {
 	var company models.DetailPerusahaan
+
 	if err := c.ShouldBindJSON(&company); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -23,23 +24,23 @@ func AddProfileCompany(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk perusahaan !"))
 		return
 	}
+	company.Id = data.Id
 	result := db.Create(&company)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
 		return
 	}
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": company})
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"message": "sukses memperbarui detail profile"})
 }
 
 func AddLowongan(c *gin.Context) {
-	var (
-		bodyLowongan models.AddLowongan
-	)
+	var bodyLowongan models.AddLowongan
+
 	if err := c.ShouldBindJSON(&bodyLowongan); err != nil {
 		_resError(c, "error", err)
 		return
 	}
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -48,8 +49,9 @@ func AddLowongan(c *gin.Context) {
 		_resError(c, "server internal error", _isErr("url ini untuk perusahaan !"))
 		return
 	}
+
 	lowongan := models.LowonganPerusahaan{
-		Id:             bodyLowongan.Id,
+		Id:             data.Id,
 		Title:          bodyLowongan.Title,
 		Deskripsi:      bodyLowongan.Deskripsi,
 		MinGaji:        bodyLowongan.MinGaji,
@@ -63,6 +65,7 @@ func AddLowongan(c *gin.Context) {
 		return
 	}
 	for _, BenefitLowonganPerusahaan := range bodyLowongan.Benefit {
+		BenefitLowonganPerusahaan.IdLowongan = lowongan.IdLowongan
 		result := db.Create(&BenefitLowonganPerusahaan) // Insert data ke tabel
 		if result.Error != nil {
 			_resError(c, "server internal error", result.Error)
@@ -70,6 +73,7 @@ func AddLowongan(c *gin.Context) {
 		}
 	}
 	for _, RequirementLowonganPerusahaan := range bodyLowongan.Requirement {
+		RequirementLowonganPerusahaan.IdLowongan = lowongan.IdLowongan
 		result := db.Create(&RequirementLowonganPerusahaan) // Insert data ke tabel
 		if result.Error != nil {
 			_resError(c, "server internal error", result.Error)
@@ -81,14 +85,15 @@ func AddLowongan(c *gin.Context) {
 
 func GetProfileCompany(c *gin.Context) {
 	var (
-		company     models.Perusahaan
-		detail      models.DetailPerusahaan
-		lowongan    []models.LowonganPerusahaan
-		// benefit     []models.BenefitLowonganPerusahaan
-		// requirement []models.RequirementLowonganPerusahaan
+		company        models.Perusahaan
+		detail         models.DetailPerusahaan
+		lowongan       []models.LowonganPerusahaan
+		benefit        models.BenefitLowonganPerusahaan
+		requirement    models.RequirementLowonganPerusahaan
+		detailLowongan []models.DetailLowongan
 	)
 
-	data, err := utils.DecodedTokenBearer(c)
+	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
 		return
@@ -100,23 +105,35 @@ func GetProfileCompany(c *gin.Context) {
 	db.Where("email = ?", data.Email).Take(&company)
 	db.Where("id_company = ?", company.Id).Take(&detail)
 	// arr
-	if err := db.Table("detail_perusahaans dp").Select("*").Joins("JOIN lowongan_perusahaans lp ON dp.id_company = lp.id_company").Scan(&lowongan).Error; err != nil {
-		_resError(c, "server internal error", err)
-		return
+	db.Where("id_company = ?", company.Id).Find(&lowongan)
+	for i := 0; i < len(lowongan); i++ {
+		detailLowongan = append(detailLowongan, models.DetailLowongan{
+			IdLowongan:     lowongan[i].IdLowongan,
+			Title:          lowongan[i].Title,
+			Deskripsi:      lowongan[i].Deskripsi,
+			MinGaji:        lowongan[i].MinGaji,
+			MaxGaji:        lowongan[i].MaxGaji,
+			Poster:         lowongan[i].Poster,
+			DurasiLowongan: lowongan[i].DurasiLowongan,
+		})
+		db.Where("id_lowongan = ?", lowongan[i].IdLowongan).Find(&benefit)
+		db.Where("id_lowongan = ?", lowongan[i].IdLowongan).Find(&requirement)
+		detailLowongan[i].BenefitLowonganPerusahaan = append(detailLowongan[i].BenefitLowonganPerusahaan, benefit)
+		detailLowongan[i].RequirementLowonganPerusahaan = append(detailLowongan[i].RequirementLowonganPerusahaan, requirement)
 	}
 
-	// db.Where("id_user = ?", company.Id).Find(&keahlianUser)
-	// result := models.GetCompanyByIdResponse{
-	// 	Id:             company.Id,
-	// 	Nama:           company.Nama,
-	// 	Alamat:         detail.Alamat,
-	// 	Deskripsi:      detail.Deskripsi,
-	// 	Bidang:         detail.Bidang,
-	// 	Pencapaian:     detail.Pencapaian,
-	// 	JumlahKaryawan: detail.JumlahKaryawan,
-	// 	Website:        detail.Website,
-	// 	Logo:           detail.Logo,
-	// 	Background:     detail.Background,
-	// }
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": lowongan})
+	result := models.GetCompanyByIdResponse{
+		Id:             company.Id,
+		Nama:           company.Nama,
+		Alamat:         detail.Alamat,
+		Deskripsi:      detail.Deskripsi,
+		Bidang:         detail.Bidang,
+		Pencapaian:     detail.Pencapaian,
+		JumlahKaryawan: detail.JumlahKaryawan,
+		Website:        detail.Website,
+		Logo:           detail.Logo,
+		Background:     detail.Background,
+		DetailLowongan: detailLowongan,
+	}
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": result})
 }

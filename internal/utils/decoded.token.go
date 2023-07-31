@@ -11,6 +11,7 @@ import (
 	"github.com/Din-27/Go_job/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/o1egl/paseto"
+	"gorm.io/gorm"
 )
 
 const (
@@ -34,9 +35,14 @@ func RefreshDecodedToken(token string) (data models.Decoded, err error) {
 	return data, nil
 }
 
-func DecodedTokenBearer(c *gin.Context) (data models.Decoded, err error) {
-	var newJsonToken paseto.JSONToken
-	var newFooter string
+func DecodedTokenBearer(c *gin.Context, db *gorm.DB) (data models.Decoded, err error) {
+	var (
+		getId        *gorm.DB
+		newJsonToken paseto.JSONToken
+		user         models.User
+		company      models.Perusahaan
+		newFooter    string
+	)
 	authorizationHeader := c.GetHeader(authorizationHeaderKey)
 
 	if len(authorizationHeader) == 0 {
@@ -64,5 +70,18 @@ func DecodedTokenBearer(c *gin.Context) (data models.Decoded, err error) {
 	data.Username = newJsonToken.Get("username")
 	data.Email = newJsonToken.Get("email")
 	data.Role = newJsonToken.Get("role")
+	if data.Role == "user" {
+		getId = db.Where("email = ?", data.Email).Take(&user)
+		if getId.Error != nil {
+			return data, getId.Error
+		}
+		data.Id = user.Id
+	} else {
+		getId = db.Where("email = ?", data.Email).Take(&company)
+		if getId.Error != nil {
+			return data, getId.Error
+		}
+		data.Id = company.Id
+	}
 	return data, nil
 }

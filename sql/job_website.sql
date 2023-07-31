@@ -28,7 +28,7 @@ CREATE TABLE `apply_lamaran_users` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4;
 
 /*Table structure for table `benefit_lowongan_perusahaans` */
 
@@ -36,7 +36,7 @@ DROP TABLE IF EXISTS `benefit_lowongan_perusahaans`;
 
 CREATE TABLE `benefit_lowongan_perusahaans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `id_company` int(11) NOT NULL,
+  `id_lowongan` int(11) NOT NULL,
   `nama` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -48,7 +48,6 @@ DROP TABLE IF EXISTS `detail_perusahaans`;
 CREATE TABLE `detail_perusahaans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `id_company` int(11) NOT NULL,
-  `nama` varchar(255) DEFAULT NULL,
   `alamat` text DEFAULT NULL,
   `deskripsi` text DEFAULT NULL,
   `bidang` text DEFAULT NULL,
@@ -60,7 +59,7 @@ CREATE TABLE `detail_perusahaans` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 
 /*Table structure for table `detail_users` */
 
@@ -97,7 +96,7 @@ CREATE TABLE `keahlian_users` (
 DROP TABLE IF EXISTS `lowongan_perusahaans`;
 
 CREATE TABLE `lowongan_perusahaans` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_lowongan` int(11) NOT NULL AUTO_INCREMENT,
   `id_company` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `deskripsi` text NOT NULL,
@@ -107,7 +106,7 @@ CREATE TABLE `lowongan_perusahaans` (
   `durasi_lowongan` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id_lowongan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /*Table structure for table `pendidikan_formal_users` */
@@ -172,7 +171,7 @@ CREATE TABLE `perusahaans` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_company`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 
 /*Table structure for table `requirement_lowongan_perusahaans` */
 
@@ -180,7 +179,7 @@ DROP TABLE IF EXISTS `requirement_lowongan_perusahaans`;
 
 CREATE TABLE `requirement_lowongan_perusahaans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `id_company` int(11) NOT NULL,
+  `id_lowongan` int(11) NOT NULL,
   `nama` varchar(255) NOT NULL,
   `deskripsi` text NOT NULL,
   PRIMARY KEY (`id`)
