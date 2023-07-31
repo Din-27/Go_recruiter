@@ -2,10 +2,11 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/Din-27/Go_job/internal/models"
 	"github.com/Din-27/Go_job/internal/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func AddUserDetail(c *gin.Context) {
@@ -13,13 +14,14 @@ func AddUserDetail(c *gin.Context) {
 		user        models.User
 		user_detail models.DetailUser
 	)
-	if err := c.ShouldBindJSON(&user_detail); err != nil {
-		_resError(c, "error", err)
-		return
-	}
+
 	data, err := utils.DecodedTokenBearer(c)
 	if err != nil {
 		_resError(c, "server internal error", err)
+		return
+	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
 	getIdUser := db.Where("email = ?", data.Email).Take(&user)
@@ -50,6 +52,10 @@ func AddUserPendidikanFormal(c *gin.Context) {
 		_resError(c, "server internal error", err)
 		return
 	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
+		return
+	}
 	getIdUser := db.Where("email = ?", data.Email).Take(&user)
 	if getIdUser.Error != nil {
 		_resError(c, "server internal error", getIdUser.Error)
@@ -76,6 +82,10 @@ func AddUserPendidikanNonFormal(c *gin.Context) {
 	data, err := utils.DecodedTokenBearer(c)
 	if err != nil {
 		_resError(c, "server internal error", err)
+		return
+	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
 	getIdUser := db.Where("email = ?", data.Email).Take(&user)
@@ -106,6 +116,10 @@ func AddUserPengalaman(c *gin.Context) {
 		_resError(c, "server internal error", err)
 		return
 	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
+		return
+	}
 	getIdUser := db.Where("email = ?", data.Email).Take(&user)
 	if getIdUser.Error != nil {
 		_resError(c, "server internal error", getIdUser.Error)
@@ -132,6 +146,10 @@ func AddUserKeahlian(c *gin.Context) {
 	data, err := utils.DecodedTokenBearer(c)
 	if err != nil {
 		_resError(c, "server internal error", err)
+		return
+	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
 		return
 	}
 	getIdUser := db.Where("email = ?", data.Email).Take(&user)
@@ -162,17 +180,27 @@ func ApplyLamaranUser(c *gin.Context) {
 		_resError(c, "server internal error", err)
 		return
 	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
+		return
+	}
 	getIdUser := db.Where("email = ?", data.Email).Take(&user)
 	if getIdUser.Error != nil {
 		_resError(c, "error", getIdUser.Error)
 		return
 	}
-	apply.Id = user.Id
+	apply.IdUser = user.Id
+	checkLamaran := db.Where("id_user = ? and id_company = ?", apply.IdUser, apply.IdCompany).Find(&apply)
+	if checkLamaran.RowsAffected == 1 {
+		_resError(c, "error", _isErr("Anda sudah melamar ke perusahaan ini !"))
+		return
+	}
 	result := db.Create(&apply)
 	if result.Error != nil {
 		_resError(c, "server internal error", result.Error)
 		return
 	}
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": "sukses apply lamaran"})
 }
 
 func GetUserById(c *gin.Context) {
@@ -220,27 +248,58 @@ func GetUserById(c *gin.Context) {
 		_resError(c, "server internal error", err)
 		return
 	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
+		return
+	}
+	// obj
 	db.Where("email = ?", data.Email).Take(&user)
 	db.Where("id_user = ?", user.Id).Take(&detailUser)
-	db.Where("id_user = ?", user.Id).Take(&pendidikanFormal)
-	db.Where("id_user = ?", user.Id).Take(&pendidikanNonFormal)
-	db.Where("id_user = ?", user.Id).Take(&pengalamanUser)
-	db.Where("id_user = ?", user.Id).Take(&keahlianUser)
+	// arr
+	db.Where("id_user = ?", user.Id).Find(&pendidikanFormal)
+	db.Where("id_user = ?", user.Id).Find(&pendidikanNonFormal)
+	db.Where("id_user = ?", user.Id).Find(&pengalamanUser)
+	db.Where("id_user = ?", user.Id).Find(&keahlianUser)
+
 	fullname := fmt.Sprintf("%s %s", user.FirstName, user.LastName)
 	result := models.GetUserByIdResponse{
-		Fullname: fullname,
-		Email:    user.Email,
-		DetailUser: models.DetailUser{
-			Gender:       detailUser.Gender,
-			Usia:         detailUser.Usia,
-			NoHp:         detailUser.NoHp,
-			Alamat:       detailUser.Alamat,
-			TanggalLahir: detailUser.TanggalLahir,
-		},
+		Id:                      user.Id,
+		Fullname:                fullname,
+		Email:                   user.Email,
+		Gender:                  detailUser.Gender,
+		Usia:                    detailUser.Usia,
+		NoHp:                    detailUser.NoHp,
+		Alamat:                  detailUser.Alamat,
+		TanggalLahir:            detailUser.TanggalLahir,
+		Cv:                      detailUser.Cv,
 		KeahlianUsers:           keahlianUser,
 		PendidikanNonFormalUser: pendidikanNonFormal,
 		PengalamanUser:          pengalamanUser,
 		PendidikanFormalUser:    pendidikanFormal,
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": result})
+}
+
+func GetUserHistoryLamaranById(c *gin.Context) {
+	// id_user := c.Param("id_user")
+	var (
+		user  models.User
+		apply []models.ApplyLamaranUser
+	)
+
+	data, err := utils.DecodedTokenBearer(c)
+	if err != nil {
+		_resError(c, "server internal error", err)
+		return
+	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
+		return
+	}
+	// obj
+	db.Where("email = ?", data.Email).Take(&user)
+
+	db.Where("id_user = ?", user.Id).Find(&apply)
+
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": apply})
 }

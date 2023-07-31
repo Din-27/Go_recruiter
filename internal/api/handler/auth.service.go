@@ -33,9 +33,9 @@ type _role struct {
 }
 
 func RoleHandle(c *gin.Context) {
-	result := []_role{
-		{Name: "user"},
-		{Name: "company"},
+	result := []map[string]interface{}{
+		{"nama": "user"},
+		{"nama": "company"},
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": result})
 }

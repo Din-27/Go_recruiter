@@ -12,8 +12,8 @@ func Services(r *gin.Engine) {
 
 	router.GET("/role", handler.RoleHandle)
 
-	router.POST("/register/:role", handler.Register)
-	router.POST("/login/:role", handler.Login)
+	router.POST("/register", handler.Register)
+	router.POST("/login", handler.Login)
 
 	router.GET("/refresh_token", handler.RefreshToken)
 
@@ -24,8 +24,19 @@ func Services(r *gin.Engine) {
 	authRoutes.GET("/kecamatan/:id_kabupaten", handler.ListKecamatan)
 	authRoutes.GET("/kelurahan/:id_kecamatan", handler.ListKelurahan)
 
+	// USERS
 	authRoutes.GET("/user", handler.GetUserById)
 	authRoutes.POST("/detail/user", handler.AddUserDetail)
-	authRoutes.GET("/apply", handler.ApplyLamaranUser)
+	authRoutes.POST("/keahlian/user", handler.AddUserKeahlian)
+	authRoutes.POST("/pengalaman/user", handler.AddUserPengalaman)
+	authRoutes.POST("/pendidikan/formal/user", handler.AddUserPendidikanFormal)
+	authRoutes.POST("/pendidikan/nonformal/user", handler.AddUserPendidikanNonFormal)
+
+	authRoutes.POST("/apply/lamaran/user", handler.ApplyLamaranUser)
+	authRoutes.GET("/history/lamaran/user", handler.GetUserHistoryLamaranById)
+
+	// PERUSAHAAN
+	authRoutes.GET("/company", handler.GetProfileCompany)
+
 	r.Run()
 }
