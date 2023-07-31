@@ -73,3 +73,16 @@ type GetCompanyByIdResponse struct {
 	Background     string           `json:"background"`
 	DetailLowongan []DetailLowongan `json:"detail_lowongan"`
 }
+
+type ResLowonganPerusahaan struct {
+	Id             int    `json:"id_company"`
+	Logo           string `json:"logo_perusahaan"`
+	Nama           string `json:"nama_perusahaan"`
+	IdLowongan     int    `json:"id_lowongan"`
+	Title          string `json:"title"`
+	Deskripsi      string `json:"deskripsi"`
+	MinGaji        int    `json:"min_gaji"`
+	MaxGaji        int    `json:"max_gaji"`
+	Poster         string `json:"poster"`
+	DurasiLowongan string `json:"durasi_lowongan"`
+}

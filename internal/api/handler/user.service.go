@@ -258,3 +258,55 @@ func GetUserHistoryLamaranById(c *gin.Context) {
 
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": apply})
 }
+
+func GetAllLowonganCompany(c *gin.Context) {
+
+	var (
+		_data          []models.ResLowonganPerusahaan
+		company        models.Perusahaan
+		detail_company models.DetailPerusahaan
+		lowongan       []models.LowonganPerusahaan
+		detailUser     models.DetailUser
+	)
+
+	data, err := utils.DecodedTokenBearer(c, db)
+	if err != nil {
+		_resError(c, "server internal error", err)
+		return
+	}
+	if data.Role != "user" {
+		_resError(c, "server internal error", _isErr("url ini untuk user !"))
+		return
+	}
+
+	getDetailUser := db.Where("id_user = ?", data.Id).Take(&detailUser)
+	if getDetailUser.Error != nil {
+		_resError(c, "server internal error", getDetailUser.Error)
+		return
+	}
+
+	allLowongan := db.Find(&lowongan)
+	if allLowongan.Error != nil {
+		_resError(c, "server internal error", allLowongan.Error)
+		return
+	}
+	for i := 0; i < len(lowongan); i++ {
+		db.Where("id_company = ?", lowongan[i].Id).Take(&company)
+		db.Where("id_company = ?", lowongan[i].Id).Take(&detail_company)
+
+		_data = append(_data, models.ResLowonganPerusahaan{
+			Id:             lowongan[i].Id,
+			Logo:           detail_company.Logo,
+			Nama:           company.Nama,
+			IdLowongan:     lowongan[i].IdLowongan,
+			Title:          lowongan[i].Title,
+			Deskripsi:      lowongan[i].Deskripsi,
+			MinGaji:        lowongan[i].MinGaji,
+			MaxGaji:        lowongan[i].MaxGaji,
+			Poster:         lowongan[i].Poster,
+			DurasiLowongan: lowongan[i].DurasiLowongan,
+		})
+	}
+
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": _data})
+}
