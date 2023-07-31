@@ -33,56 +33,6 @@ func AddProfileCompany(c *gin.Context) {
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"message": "sukses memperbarui detail profile"})
 }
 
-func AddLowongan(c *gin.Context) {
-	var bodyLowongan models.AddLowongan
-
-	if err := c.ShouldBindJSON(&bodyLowongan); err != nil {
-		_resError(c, "error", err)
-		return
-	}
-	data, err := utils.DecodedTokenBearer(c, db)
-	if err != nil {
-		_resError(c, "server internal error", err)
-		return
-	}
-	if data.Role != "company" {
-		_resError(c, "server internal error", _isErr("url ini untuk perusahaan !"))
-		return
-	}
-
-	lowongan := models.LowonganPerusahaan{
-		Id:             data.Id,
-		Title:          bodyLowongan.Title,
-		Deskripsi:      bodyLowongan.Deskripsi,
-		MinGaji:        bodyLowongan.MinGaji,
-		MaxGaji:        bodyLowongan.MaxGaji,
-		Poster:         bodyLowongan.Poster,
-		DurasiLowongan: bodyLowongan.DurasiLowongan,
-	}
-	result := db.Create(&lowongan)
-	if result.Error != nil {
-		_resError(c, "server internal error", result.Error)
-		return
-	}
-	for _, BenefitLowonganPerusahaan := range bodyLowongan.Benefit {
-		BenefitLowonganPerusahaan.IdLowongan = lowongan.IdLowongan
-		result := db.Create(&BenefitLowonganPerusahaan) // Insert data ke tabel
-		if result.Error != nil {
-			_resError(c, "server internal error", result.Error)
-			return
-		}
-	}
-	for _, RequirementLowonganPerusahaan := range bodyLowongan.Requirement {
-		RequirementLowonganPerusahaan.IdLowongan = lowongan.IdLowongan
-		result := db.Create(&RequirementLowonganPerusahaan) // Insert data ke tabel
-		if result.Error != nil {
-			_resError(c, "server internal error", result.Error)
-			return
-		}
-	}
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{"message": "sukses membuat lowongan"})
-}
-
 func GetProfileCompany(c *gin.Context) {
 	var (
 		company        models.Perusahaan

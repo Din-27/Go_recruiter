@@ -32,14 +32,18 @@ func Services(r *gin.Engine) {
 	authRoutes.POST("/pendidikan/formal/user", handler.AddUserPendidikanFormal)
 	authRoutes.POST("/pendidikan/nonformal/user", handler.AddUserPendidikanNonFormal)
 
-	authRoutes.GET("/lowongan/user", handler.GetAllLowonganCompany)
 	authRoutes.POST("/apply/lamaran/user", handler.ApplyLamaranUser)
 	authRoutes.GET("/history/lamaran/user", handler.GetUserHistoryLamaranById)
 
 	// PERUSAHAAN
 	authRoutes.GET("/company", handler.GetProfileCompany)
+	authRoutes.GET("/lowongan/company", handler.GetAllLowonganCompany)
 	authRoutes.POST("/profile/company", handler.AddProfileCompany)
-	authRoutes.POST("/lowongan/company", handler.AddLowongan)
+
+	// LOWONGAN
+	authRoutes.GET("/lowongan", handler.GetAllLowongan)
+	authRoutes.GET("/detail/lowongan/:id_lowongan", handler.GetDetailLowongan)
+	authRoutes.POST("/lowongan", handler.AddLowongan)
 
 	r.Run()
 }
