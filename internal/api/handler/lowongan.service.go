@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Din-27/Go_job/internal/models"
@@ -10,12 +11,7 @@ import (
 
 func GetAllLowongan(c *gin.Context) {
 
-	var (
-		_data          []models.ResLowonganPerusahaan
-		company        models.Perusahaan
-		detail_company models.DetailPerusahaan
-		lowongan       []models.LowonganPerusahaan
-	)
+	var _data []models.ResLowonganPerusahaan
 
 	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
@@ -27,27 +23,14 @@ func GetAllLowongan(c *gin.Context) {
 		return
 	}
 
-	allLowongan := db.Find(&lowongan)
-	if allLowongan.Error != nil {
-		_resError(c, "server internal error", allLowongan.Error)
+	result := db.Model(&models.LowonganPerusahaan{}).
+		Select("dp.logo, p.nama, lowongan_perusahaans.*").
+		Joins("join perusahaans p on p.id_company = lowongan_perusahaans.id_company").
+		Joins("join detail_perusahaans dp on dp.id_company = lowongan_perusahaans.id_company").
+		Scan(&_data)
+	if result.Error != nil {
+		_resError(c, "server internal error", result.Error)
 		return
-	}
-	for i := 0; i < len(lowongan); i++ {
-		db.Where("id_company = ?", lowongan[i].Id).Take(&company)
-		db.Where("id_company = ?", lowongan[i].Id).Take(&detail_company)
-
-		_data = append(_data, models.ResLowonganPerusahaan{
-			Id:             lowongan[i].Id,
-			Logo:           detail_company.Logo,
-			Nama:           company.Nama,
-			IdLowongan:     lowongan[i].IdLowongan,
-			Title:          lowongan[i].Title,
-			Deskripsi:      lowongan[i].Deskripsi,
-			MinGaji:        lowongan[i].MinGaji,
-			MaxGaji:        lowongan[i].MaxGaji,
-			Poster:         lowongan[i].Poster,
-			DurasiLowongan: lowongan[i].DurasiLowongan,
-		})
 	}
 
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": _data})
@@ -114,10 +97,13 @@ func AddLowongan(c *gin.Context) {
 	lowongan := models.LowonganPerusahaan{
 		Id:             data.Id,
 		Title:          bodyLowongan.Title,
+		Category:       bodyLowongan.Category,
 		Deskripsi:      bodyLowongan.Deskripsi,
 		MinGaji:        bodyLowongan.MinGaji,
 		MaxGaji:        bodyLowongan.MaxGaji,
 		Poster:         bodyLowongan.Poster,
+		TipePekerjaan:  bodyLowongan.TipePekerjaan,
+		LevelPekerjaan: bodyLowongan.LevelPekerjaan,
 		DurasiLowongan: bodyLowongan.DurasiLowongan,
 	}
 	result := db.Create(&lowongan)
@@ -186,4 +172,36 @@ func GetAllLowonganCompany(c *gin.Context) {
 	}
 
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": _data})
+}
+
+func GetAllFilterLowongan(c *gin.Context) {
+	var (
+		tipe_pekerjaan     []models.ResFilter
+		level_pekerjaan    []models.ResFilter
+		kategori_pekerjaan []models.ResFilter
+	)
+	getCategory := db.Model(&models.LowonganPerusahaan{}).Select("category as nama, COUNT(title) AS jumlah").Group("category").Find(&kategori_pekerjaan)
+	if getCategory.Error != nil {
+		_resError(c, "server internal error", getCategory.Error)
+		return
+	}
+	getLevel := db.Model(&models.LowonganPerusahaan{}).Select("level_pekerjaan as nama, COUNT(title) AS jumlah").Group("level_pekerjaan").Find(&level_pekerjaan)
+	if getLevel.Error != nil {
+		_resError(c, "server internal error", getLevel.Error)
+		return
+	}
+	getTipe := db.Model(&models.LowonganPerusahaan{}).Select("tipe_pekerjaan as nama, COUNT(title) AS jumlah").Group("tipe_pekerjaan").Find(&tipe_pekerjaan)
+	if getTipe.Error != nil {
+		_resError(c, "server internal error", getTipe.Error)
+		return
+	}
+
+	fmt.Println(kategori_pekerjaan)
+	result := map[string]interface{}{
+		"tipe_pekerjaan":     tipe_pekerjaan,
+		"level_pekerjaan":    level_pekerjaan,
+		"kategori_pekerjaan": kategori_pekerjaan,
+	}
+
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": result})
 }

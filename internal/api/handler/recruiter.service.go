@@ -75,10 +75,10 @@ func GetProfileCompany(c *gin.Context) {
 	result := models.GetCompanyByIdResponse{
 		Id:             company.Id,
 		Nama:           company.Nama,
-		Alamat:         detail.Alamat,
+		Didirikan:      detail.Didirikan,
 		Deskripsi:      detail.Deskripsi,
-		Bidang:         detail.Bidang,
-		Pencapaian:     detail.Pencapaian,
+		Industri:       detail.Industri,
+		IdTeknologi:    detail.IdTeknologi,
 		JumlahKaryawan: detail.JumlahKaryawan,
 		Website:        detail.Website,
 		Logo:           detail.Logo,

@@ -173,36 +173,7 @@ func GetUserById(c *gin.Context) {
 		pendidikanFormal    []models.PendidikanFormalUser
 		pendidikanNonFormal []models.PendidikanNonFormalUser
 	)
-	// _user := db.Where("id_user = ?", id_user).Take(&user)
-	// if _user.Error != nil {
-	// 	_resError(c, "error", _user.Error)
-	// 	return
-	// }
-	// detail := db.Where("id_user = ?", id_user).Take(&detailUser)
-	// if detail.Error != nil {
-	// 	_resError(c, "error", detail.Error)
-	// 	return
-	// }
-	// pendidikan_formal := db.Where("id_user = ?", id_user).Take(&pendidikanFormal)
-	// if pendidikan_formal.Error != nil {
-	// 	_resError(c, "error", pendidikan_formal.Error)
-	// 	return
-	// }
-	// pendidikan_non_formal := db.Where("id_user = ?", id_user).Take(&pendidikanNonFormal)
-	// if pendidikan_non_formal.Error != nil {
-	// 	_resError(c, "error", pendidikan_non_formal.Error)
-	// 	return
-	// }
-	// pengalaman_user := db.Where("id_user = ?", id_user).Take(&pengalamanUser)
-	// if pengalaman_user.Error != nil {
-	// 	_resError(c, "error", pengalaman_user.Error)
-	// 	return
-	// }
-	// keahlian_user := db.Where("id_user = ?", id_user).Take(&keahlianUser)
-	// if keahlian_user.Error != nil {
-	// 	_resError(c, "error", keahlian_user.Error)
-	// 	return
-	// }
+	
 	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)
@@ -255,6 +226,9 @@ func GetUserHistoryLamaranById(c *gin.Context) {
 	}
 	// obj
 	db.Where("id_user = ?", data.Id).Find(&apply)
-
-	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": apply})
+	result := db.Model(&models.ApplyLamaranUser{}).
+		Select("p.nama ").
+		Joins("join perusahaans p on p.id_company = apply_lamaran_users.id_company").
+		Scan(&apply)
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{"value": result})
 }

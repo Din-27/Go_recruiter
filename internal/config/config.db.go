@@ -4,17 +4,14 @@ import (
 	"os"
 
 	// "github.com/Din-27/Go_job/internal/models"
-	"github.com/joho/godotenv"
+	"github.com/Din-27/Go_job/internal/utils"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func DBinit() *gorm.DB {
-	err := godotenv.Load()
-	if err != nil {
-		return nil
-	}
-	db, err := gorm.Open(mysql.Open(os.Getenv("DB")), &gorm.Config{})
+	utils.LoadEnv()
+	db, err := gorm.Open(mysql.Open(os.Getenv("DSN")), &gorm.Config{})
 	if err != nil {
 		return nil
 	}

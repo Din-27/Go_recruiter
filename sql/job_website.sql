@@ -66,10 +66,10 @@ DROP TABLE IF EXISTS `detail_perusahaans`;
 CREATE TABLE `detail_perusahaans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `id_company` int(11) NOT NULL,
-  `alamat` text DEFAULT NULL,
+  `didirikan` date DEFAULT NULL,
   `deskripsi` text DEFAULT NULL,
-  `bidang` text DEFAULT NULL,
-  `pencapaian` text DEFAULT NULL,
+  `industri` varchar(255) DEFAULT NULL,
+  `teknologi` varchar(255) DEFAULT NULL,
   `jumlah_karyawan` bigint(20) DEFAULT NULL,
   `website` varchar(255) DEFAULT NULL,
   `logo` varchar(255) DEFAULT NULL,
@@ -81,8 +81,8 @@ CREATE TABLE `detail_perusahaans` (
 
 /*Data for the table `detail_perusahaans` */
 
-insert  into `detail_perusahaans`(`id`,`id_company`,`alamat`,`deskripsi`,`bidang`,`pencapaian`,`jumlah_karyawan`,`website`,`logo`,`background`,`created_at`,`updated_at`) values 
-(4,1,'ungsi append() yang memungkinkan Anda menambahkan elemen baru ke dalam slice (slice mirip dengan array, namun ukurannya dapat berubah)','ungsi append() yang memungkinkan Anda menambahkan elemen baru ke dalam slice (slice mirip dengan array, namun ukurannya dapat berubah)','perikanan','',50,'www.google.com','test','test','2023-07-31 14:22:03','2023-07-31 14:22:03');
+insert  into `detail_perusahaans`(`id`,`id_company`,`didirikan`,`deskripsi`,`industri`,`teknologi`,`jumlah_karyawan`,`website`,`logo`,`background`,`created_at`,`updated_at`) values 
+(4,1,'0000-00-00','ungsi append() yang memungkinkan Anda menambahkan elemen baru ke dalam slice (slice mirip dengan array, namun ukurannya dapat berubah)','perikanan','',50,'www.google.com','test','test','2023-07-31 14:22:03','2023-07-31 14:22:03');
 
 /*Table structure for table `detail_users` */
 
@@ -133,11 +133,14 @@ CREATE TABLE `lowongan_perusahaans` (
   `id_lowongan` int(11) NOT NULL AUTO_INCREMENT,
   `id_company` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
+  `category` varchar(255) DEFAULT NULL,
   `deskripsi` text NOT NULL,
   `min_gaji` int(11) NOT NULL,
   `max_gaji` int(11) NOT NULL,
   `poster` varchar(255) NOT NULL,
   `durasi_lowongan` date NOT NULL,
+  `tipe_pekerjaan` varchar(255) DEFAULT NULL,
+  `level_pekerjaan` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_lowongan`)
@@ -145,11 +148,11 @@ CREATE TABLE `lowongan_perusahaans` (
 
 /*Data for the table `lowongan_perusahaans` */
 
-insert  into `lowongan_perusahaans`(`id_lowongan`,`id_company`,`title`,`deskripsi`,`min_gaji`,`max_gaji`,`poster`,`durasi_lowongan`,`created_at`,`updated_at`) values 
-(7,1,'PENCUCI PIRING','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','2023-07-31 13:47:06','2023-07-31 13:47:06'),
-(9,1,'PENCUCI MATA','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','2023-07-31 14:08:56','2023-07-31 14:08:56'),
-(10,1,'PENCUCI KAKI','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','2023-07-31 14:09:02','2023-07-31 14:09:02'),
-(11,1,'PENCUCI KAKI','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','2023-07-31 14:22:09','2023-07-31 14:22:09');
+insert  into `lowongan_perusahaans`(`id_lowongan`,`id_company`,`title`,`category`,`deskripsi`,`min_gaji`,`max_gaji`,`poster`,`durasi_lowongan`,`tipe_pekerjaan`,`level_pekerjaan`,`created_at`,`updated_at`) values 
+(7,1,'PENCUCI PIRING','Technology','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','remot','professional','2023-07-31 13:47:06','2023-08-02 10:36:05'),
+(9,1,'PENCUCI MATA','ART','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','paruh waktu','rendah','2023-07-31 14:08:56','2023-08-02 10:34:41'),
+(10,1,'PENCUCI KAKI','ART','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','penuh waktu','atas','2023-07-31 14:09:02','2023-08-02 10:43:33'),
+(11,1,'PENCUCI KAKI','Enginering','mencuci sebagian piring kotor',1000,20000,'test','2023-08-24','magang','menengah','2023-07-31 14:22:09','2023-08-02 10:35:59');
 
 /*Table structure for table `pendidikan_formal_users` */
 

@@ -32,6 +32,8 @@ func Services(r *gin.Engine) {
 	authRoutes.POST("/pendidikan/formal/user", handler.AddUserPendidikanFormal)
 	authRoutes.POST("/pendidikan/nonformal/user", handler.AddUserPendidikanNonFormal)
 
+	authRoutes.GET("/filter", handler.GetAllFilterLowongan)
+
 	authRoutes.POST("/apply/lamaran/user", handler.ApplyLamaranUser)
 	authRoutes.GET("/history/lamaran/user", handler.GetUserHistoryLamaranById)
 

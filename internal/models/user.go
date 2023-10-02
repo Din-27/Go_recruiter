@@ -64,3 +64,11 @@ type ApplyLamaranUser struct {
 	IdCompany int    `gorm:"column:id_company" json:"id_company"`
 	CreatedAt string `gorm:"column:created_at" json:"tanggal_lamar"`
 }
+
+type ResApplyLamaranUser struct {
+	Id        int    `gorm:"column:id" json:"id"`
+	IdUser    int    `gorm:"column:id_user" json:"id_user"`
+	Pesan     string `gorm:"type:text" json:"pesan"`
+	IdCompany int    `gorm:"column:id_company" json:"id_company"`
+	CreatedAt string `gorm:"column:created_at" json:"tanggal_lamar"`
+}
