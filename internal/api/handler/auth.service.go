@@ -15,7 +15,7 @@ import (
 
 var (
 	oneWeek     = 7 * 24 * time.Hour
-	fiveMinutes = 15 * time.Minute
+	fiveMinutes = 1 * time.Minute
 	db          = config.DBinit()
 	_resError   = utils.ResponseError
 	_isErr      = utils.ErrorReturn

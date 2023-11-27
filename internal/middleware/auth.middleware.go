@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Din-27/Go_job/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -22,9 +23,12 @@ const (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Handle the protected endpoint that requires a valid access token.
-		var newJsonToken paseto.JSONToken
-		var newFooter string
-		authorizationHeader := c.GetHeader(authorizationHeaderKey)
+		var (
+			authorizationHeader = c.GetHeader(authorizationHeaderKey)
+			today               = time.Now()
+			newJsonToken        paseto.JSONToken
+			newFooter           string
+		)
 
 		if len(authorizationHeader) == 0 {
 			err := errors.New("authorization header is not provided")
@@ -50,6 +54,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		err := paseto.NewV2().Decrypt(accessToken, utils.Key, &newJsonToken, &newFooter)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(err))
+			return
+		}
+
+		if today.After(newJsonToken.Expiration) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(errors.New("Token Expired !")))
 			return
 		}
 		c.Set(authorizationPayloadKey, newJsonToken)
