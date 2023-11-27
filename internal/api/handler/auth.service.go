@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	oneWeek     = 7 * 24 * time.Hour
-	fiveMinutes = 1 * time.Minute
-	db          = config.DBinit()
-	_resError   = utils.ResponseError
-	_isErr      = utils.ErrorReturn
-	p           = &models.Params{
+	oneWeek   = 7 * 24 * time.Hour
+	oneDay    = 1 * 24 * time.Hour
+	db        = config.DBinit()
+	_resError = utils.ResponseError
+	_isErr    = utils.ErrorReturn
+	p         = &models.Params{
 		Memory:      64 * 1024,
 		Iterations:  3,
 		Parallelism: 2,
@@ -145,7 +145,7 @@ func Login(c *gin.Context) {
 			_resError(c, "server internal error", err)
 			return
 		}
-		access_token, err := utils.GenerateAccessToken(user.Username, login.Email, role, fiveMinutes)
+		access_token, err := utils.GenerateAccessToken(user.Username, login.Email, role, oneDay)
 		if err != nil {
 			_resError(c, "server internal error", err)
 			return
@@ -188,7 +188,7 @@ func Login(c *gin.Context) {
 			_resError(c, "server internal error", err)
 			return
 		}
-		access_token, err := utils.GenerateAccessToken(company.Nama, login.Email, role, fiveMinutes)
+		access_token, err := utils.GenerateAccessToken(company.Nama, login.Email, role, oneDay)
 		if err != nil {
 			_resError(c, "server internal error", err)
 			return
@@ -255,7 +255,7 @@ func RefreshToken(c *gin.Context) {
 			return
 		}
 		// If the token is valid, generate a new access token forthe same user
-		accessToken, err := utils.GenerateAccessToken(result.Username, result.Email, result.Role, fiveMinutes)
+		accessToken, err := utils.GenerateAccessToken(result.Username, result.Email, result.Role, oneDay)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 			return
@@ -284,7 +284,7 @@ func RefreshToken(c *gin.Context) {
 			return
 		}
 		// If the token is valid, generate a new access token forthe same user
-		accessToken, err := utils.GenerateAccessToken(result.Username, result.Email, result.Role, fiveMinutes)
+		accessToken, err := utils.GenerateAccessToken(result.Username, result.Email, result.Role, oneDay)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 			return
