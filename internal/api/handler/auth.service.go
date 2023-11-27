@@ -56,7 +56,7 @@ func Register(c *gin.Context) {
 		}
 		checkEmail := db.Where("email = ?", user.Email).Take(&user)
 		if checkEmail.Error == nil {
-			_resError(c, "error", _isErr("Email tidak sudah terdaftar !"))
+			_resError(c, "error", _isErr("Email sudah terdaftar !"))
 			return
 		}
 		encodedHash, err := utils.GenerateFromPassword(user.Password, p)
@@ -86,7 +86,7 @@ func Register(c *gin.Context) {
 		}
 		checkEmail := db.Where("email = ?", company.Email).Take(&company)
 		if checkEmail.Error == nil {
-			_resError(c, "error", _isErr("Email tidak sudah terdaftar !"))
+			_resError(c, "error", _isErr("Email sudah terdaftar !"))
 			return
 		}
 		encodedHash, err := utils.GenerateFromPassword(company.Password, p)

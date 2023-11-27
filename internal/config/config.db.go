@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	// "github.com/Din-27/Go_job/internal/models"
@@ -12,9 +13,14 @@ import (
 func DBinit() *gorm.DB {
 	utils.LoadEnv()
 	db, err := gorm.Open(mysql.Open(os.Getenv("DSN")), &gorm.Config{})
+	// db, err := gorm.Open(mysql.Open(os.Getenv("DSN")), &gorm.Config{})
 	if err != nil {
-		return nil
+		db, err = gorm.Open(mysql.Open(fmt.Sprintf("%v:%v@/%v", "root", "", "job_website")), &gorm.Config{})
+		if err != nil {
+			return nil
+		}
 	}
+
 	// db.AutoMigrate(&models.Perusahaan{})
 	// db.AutoMigrate(&models.User{})
 	// db.AutoMigrate(&models.DetailPerusahaan{})

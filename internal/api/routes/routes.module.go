@@ -12,8 +12,8 @@ func Services(r *gin.Engine) {
 
 	router.GET("/role", handler.RoleHandle)
 
-	router.POST("/register", handler.Register)
-	router.POST("/login", handler.Login)
+	router.POST("/register/:role", handler.Register)
+	router.POST("/login/:role", handler.Login)
 
 	router.GET("/refresh_token", handler.RefreshToken)
 
