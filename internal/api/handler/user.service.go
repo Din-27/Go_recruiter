@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Din-27/Go_job/internal/models"
-	"github.com/Din-27/Go_job/internal/utils"
+	"github.com/Din-27/Go_recruiter/internal/models"
+	"github.com/Din-27/Go_recruiter/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -173,7 +173,7 @@ func GetUserById(c *gin.Context) {
 		pendidikanFormal    []models.PendidikanFormalUser
 		pendidikanNonFormal []models.PendidikanNonFormalUser
 	)
-	
+
 	data, err := utils.DecodedTokenBearer(c, db)
 	if err != nil {
 		_resError(c, "server internal error", err)

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Din-27/Go_job/internal/api/routes"
-	"github.com/Din-27/Go_job/internal/utils"
+	"github.com/Din-27/Go_recruiter/internal/api/routes"
+	"github.com/Din-27/Go_recruiter/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	handler "github.com/Din-27/Go_job/internal/api/handler"
-	token "github.com/Din-27/Go_job/internal/middleware"
+	handler "github.com/Din-27/Go_recruiter/internal/api/handler"
+	token "github.com/Din-27/Go_recruiter/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 

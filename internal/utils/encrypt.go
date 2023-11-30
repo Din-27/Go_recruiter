@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/Din-27/Go_job/internal/models"
+	"github.com/Din-27/Go_recruiter/internal/models"
 	"golang.org/x/crypto/argon2"
 )
 

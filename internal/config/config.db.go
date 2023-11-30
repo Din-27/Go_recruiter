@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	// "github.com/Din-27/Go_job/internal/models"
-	"github.com/Din-27/Go_job/internal/utils"
+	// "github.com/Din-27/Go_recruiter/internal/models"
+	"github.com/Din-27/Go_recruiter/internal/utils"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

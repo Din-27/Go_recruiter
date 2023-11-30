@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Din-27/Go_job/internal/models"
+	"github.com/Din-27/Go_recruiter/internal/models"
 )
 
 func FetchGetProvinsi() (value []models.Provinsi, err error) {

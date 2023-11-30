@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Din-27/Go_job/internal/models"
+	"github.com/Din-27/Go_recruiter/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/o1egl/paseto"
 	"gorm.io/gorm"

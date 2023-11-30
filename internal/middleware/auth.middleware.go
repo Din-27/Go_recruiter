@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Din-27/Go_job/internal/utils"
+	"github.com/Din-27/Go_recruiter/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/o1egl/paseto"
 )

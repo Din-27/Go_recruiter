@@ -1,4 +1,4 @@
-module github.com/Din-27/Go_job
+module github.com/Din-27/Go_recruiter
 
 go 1.19
 

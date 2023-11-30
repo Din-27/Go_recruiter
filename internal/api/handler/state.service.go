@@ -3,10 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Din-27/Go_job/internal/utils"
+	"github.com/Din-27/Go_recruiter/internal/utils"
 	"github.com/gin-gonic/gin"
 )
-
 
 func ListProvince(c *gin.Context) {
 
